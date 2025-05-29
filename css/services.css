@@ -1,0 +1,78 @@
+/* Services Grid Styles */
+.services-grid {
+    max-width: 1400px; /* Increased from 1200px */
+    margin: 100px auto 0; /* Increased top margin */
+    padding: 0 40px 70px; /* Increased padding */
+    display: flex;
+    flex-direction: column;
+    gap: 50px; /* Increased space between rows */
+}
+
+.services-row {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 40px; /* Increased bottom margin */
+}
+
+.service-item {
+    display: flex;
+    flex-direction: column; /* Changed from row to column */
+    align-items: center; /* Center horizontally */
+    justify-content: center; /* Center vertically */
+    width: 32%; /* Slightly wider items */
+    padding: 20px 15px; /* Added more top/bottom padding */
+    transition: transform 0.3s ease;
+    text-align: center; /* Center the text */
+}
+
+.service-item:hover {
+    transform: scale(1.05); /* Add a slight zoom effect on hover */
+}
+
+.service-item img {
+    width: 80px; 
+    height: auto;
+    margin-right: 0; /* Remove right margin */
+    margin-bottom: 15px; /* Add bottom margin to separate from text */
+    filter: brightness(0) saturate(100%) invert(30%) sepia(80%) saturate(1000%) hue-rotate(190deg);
+}
+
+.service-item span {
+    font-size: 18px; /* Larger text */
+    font-weight: 500;
+    color: #333;
+}
+
+.services-banner {
+    background-color: #2196F3;
+    color: white;
+    padding: 20px 0; /* Increased padding */
+    text-align: left;
+    padding-left: 40px; /* Increased left padding */
+    font-size: 28px; /* Larger font */
+    font-weight: bold;
+}
+
+/* Responsive styles for the services grid */
+@media (max-width: 992px) {
+    .services-grid {
+        max-width: 100%;
+        padding: 0 20px 50px;
+    }
+}
+
+@media (max-width: 768px) {
+    .services-row {
+        flex-direction: column;
+        gap: 30px; /* Increased gap for mobile */
+    }
+    
+    .service-item {
+        width: 100%;
+        padding: 10px;
+    }
+    
+    .service-item img {
+        width: 35px;
+    }
+}

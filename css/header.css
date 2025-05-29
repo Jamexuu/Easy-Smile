@@ -1,0 +1,56 @@
+ .top-header {
+            background-color: #2196F3;
+            color: white;
+            padding: 10px 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .contact-info {
+            display: flex;
+            gap: 40px; /* Increased spacing between contact items */
+            margin-left: 20px;
+        }
+        
+        .contact-info a {
+            color: white;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 400;
+            font-size: 13px; /* Smaller font for contact info */
+        }
+        
+        .social-media {
+            display: flex;
+            gap: 15px;
+            margin-right: 20px;
+            justify-content: flex-end; /* Ensures right alignment */
+        }
+        
+        .social-media a {
+            color: white;
+            background-color: rgba(255, 255, 255, 0.2);
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: background-color 0.3s;
+            font-size: 14px; /* Font size for icons */
+        }
+        
+        .social-media a:hover {
+            background-color: rgba(255, 255, 255, 0.3);
+        }
+        @media (max-width: 768px) {
+.top-header {
+flex-direction: column;
+gap: 10px;
+padding: 10px;
+}
+
+}
