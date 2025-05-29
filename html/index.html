@@ -101,7 +101,7 @@
         .login-section h2 {
             margin-bottom: 5px;
             font-size: 22px;
-            color: white;
+            color: 1167B1;
             font-weight: 600;
         }
         
@@ -159,18 +159,19 @@
         }
         
         .tagline {
-            font-size: 30px;
+            font-size: 24px;
             font-weight: 700;
             margin-bottom: 20px;
-            color: white;
-            text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.5);
+            color: #1167B1;
+    
         }
         
         .services-banner {
             background-color: #2196F3;
             color: white;
             padding: 15px 0;
-            text-align: center;
+            text-align: left;
+            padding-left: 30px;
             font-size: 24px;
             font-weight: bold;
         }
@@ -179,7 +180,7 @@
             position: absolute;
             top: 20px;
             right: 40px;
-            color: white;
+            color: #1167B1;
             text-decoration: none;
             font-size: 14px;
         }
@@ -223,6 +224,84 @@
                 font-size: 24px;
             }
         }
+
+        /* Additional styles for the new layout */
+        /* Login heading (outside blue box) */
+        .login-heading {
+            position: absolute;
+            top: 20px;
+            left: 40px;
+            font-size: 22px;
+            color: #1167B1; /* Changed from white to blue */
+            font-weight: 600;
+          
+        }
+        
+        /* Blue box for appointment only */
+        .appointment-box {
+            position: absolute;
+            top: 55px; /* Positioned below the login heading */
+            left: 40px;
+            background-color: rgba(33, 150, 243, 0.8);
+            padding: 15px 20px;
+            border-radius: 10px;
+            text-align: left;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        }
+
+        .appointment-info {
+            font-size: 14px;
+            color: white;
+        }
+
+        /* Services Grid Styles */
+        .services-grid {
+            max-width: 1200px;
+           align-self: center;
+            margin-top: 80px; 
+            margin-left: 250px; /* Centered with left margin */
+            padding: 50px;
+            display: flex;
+            flex-direction: column;
+            gap: 30px; /* Space between rows */
+        }
+
+        .services-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 30px;
+        }
+
+        .service-item {
+            display: flex;
+            align-items: center;
+            width: 30%;
+        }
+
+        .service-item img {
+            width: 30px;
+            height: auto;
+            margin-right: 15px;
+            filter: brightness(0) saturate(100%) invert(30%) sepia(80%) saturate(1000%) hue-rotate(190deg);
+        }
+
+        .service-item span {
+            font-size: 16px;
+            font-weight: 500;
+            color: #333;
+        }
+
+        /* Responsive styles for the services grid */
+        @media (max-width: 768px) {
+            .services-row {
+                flex-direction: column;
+                gap: 20px;
+            }
+            
+            .service-item {
+                width: 100%;
+            }
+        }
     </style>
 </head>
 <body>
@@ -257,14 +336,18 @@
     <!-- Hero Section -->
       
     <section class="hero">
-       
-        <div class="login-section">
-            <h2>Login/Hi, Iyah!</h2>
+        <!-- Login text (outside blue box) -->
+        <h2 class="login-heading">Login/Hi, Iyah!</h2>
+        
+        <!-- Blue box with appointment only -->  
+        <div class="appointment-box">
             <div class="appointment-info">
                 <p>Upcoming Appointment:</p>
                 <p>May 31, Saturday</p>
             </div>
         </div>
+        
+        <a href="#" class="log-out-link">Log Out</a>
         
         <div class="logo-container">
             <img src="../static/images/EasySmileLogo.png" alt="Easy Smile Dental and Orthodontics Clinic">
@@ -284,5 +367,35 @@
     </div>
     
     <!-- Main content goes here -->
+    <div class="services-grid">
+        <div class="services-row">
+            <div class="service-item">
+                <img src="../static/images/ngipinbullet.png" alt="Service 1">
+                <span>General Dentistry</span>
+            </div>
+            <div class="service-item">
+                <img src="../static/images/ngipinbullet.png" alt="Service 2">
+                <span>Cosmetic Dentistry</span>
+            </div>
+            <div class="service-item">
+                <img src="../static/images/ngipinbullet.png" alt="Service 3">
+                <span>Orthodontics</span>
+            </div>
+        </div>
+        <div class="services-row">
+            <div class="service-item">
+                <img src="../static/images/ngipinbullet.png" alt="Service 4">
+                <span>Pediatric Dentistry</span>
+            </div>
+            <div class="service-item">
+                <img src="../static/images/ngipinbullet.png" alt="Service 5">
+                <span>Periodontics</span>
+            </div>
+            <div class="service-item">
+                <img src="../static/images/ngipinbullet.png" alt="Service 6">
+                <span>Oral Surgery</span>
+            </div>
+        </div>
+    </div>
 </body>
 </html>
