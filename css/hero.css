@@ -38,7 +38,7 @@
 }
 
 .logo-container {
-    margin-top: 100px; /* Added this line to lower the logo */
+    margin-top: 40px; /* Added this line to lower the logo */
     margin-bottom: 40px;
     max-width: 600px; 
     width: 80%; 
@@ -141,4 +141,17 @@
         .appointment-info {
             font-size: 14px;
             color: white;
+        }
+
+        .appointment-link {
+            text-decoration: none;
+            color: inherit;
+            display: block;
+            cursor: pointer;
+        }
+
+        .appointment-link:hover .appointment-box {
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            transform: translateY(-2px);
+            transition: all 0.2s ease;
         }
