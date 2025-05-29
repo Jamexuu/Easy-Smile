@@ -76,7 +76,6 @@
             <button type="submit" class="register-button">Register</button>
         </form>
     </div>
-
     <script>
         function togglePassword() {
             const passwordField = document.getElementById('confirmPassword');
@@ -94,7 +93,7 @@
         }
     </script>
 </body>
- 
+
  <footer class="top-header">
         <?php include 'components/footer.html'; ?>
     </footer>

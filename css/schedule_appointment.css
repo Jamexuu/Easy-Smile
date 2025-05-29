@@ -1,16 +1,10 @@
-Users\Genesis Pardo\Desktop\EasySmileDentalClinic\css\register.css */
-body {
-    background-color: #EEEEEE; /* Body already has this color */
-    margin: 0;
-    padding: 0;
-    font-family: 'Poppins', sans-serif;
-}
+/* Appointment Form Styles */
 
-.register-container {
+.appointment-container {
     max-width: 500px;
     margin: 30px auto;
     padding: 20px;
-    background-color: #EEEEEE; /* Added explicit form background color */
+    background-color: #EEEEEE;
 }
 
 h1 {
@@ -20,7 +14,7 @@ h1 {
     margin-bottom: 5px;
 }
 
-.register-subtitle {
+.appointment-subtitle {
     color: #333;
     font-size: 18px;
     font-weight: 500;
@@ -28,14 +22,8 @@ h1 {
     margin-bottom: 25px;
 }
 
-.register-form {
+.appointment-form {
     width: 100%;
-}
-
-.form-row {
-    display: flex;
-    gap: 15px;
-    margin-bottom: 15px;
 }
 
 .form-group {
@@ -78,24 +66,20 @@ select {
     padding-right: 30px;
 }
 
-.password-group {
+.date-input-container {
     position: relative;
 }
 
-.password-container {
-    position: relative;
-}
-
-.password-toggle {
+.date-icon {
     position: absolute;
     right: 15px;
     top: 50%;
     transform: translateY(-50%);
-    cursor: pointer;
     color: #777;
+    pointer-events: none;
 }
 
-.register-button {
+.book-button {
     width: 100%;
     padding: 12px;
     background-color: #2196F3;
@@ -109,18 +93,22 @@ select {
     margin-top: 10px;
 }
 
-.register-button:hover {
+.book-button:hover {
     background-color: #0d8aed;
 }
 
 /* Responsive adjustments */
 @media (max-width: 600px) {
-    .form-row {
-        flex-direction: column;
-        gap: 0;
+    .appointment-container {
+        padding: 15px;
+        margin: 15px auto;
     }
     
-    .register-container {
-        padding: 15px;
+    h1 {
+        font-size: 24px;
+    }
+    
+    .appointment-subtitle {
+        font-size: 16px;
     }
 }

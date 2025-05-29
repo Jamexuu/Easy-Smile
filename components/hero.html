@@ -4,6 +4,7 @@
         <a href="#" onclick="openLoginPopup(); return false;"><h2 class="login-heading">Login/Hi, Iyah!</h2></a>
         
         <!-- Blue box with appointment only -->  
+        <a href="view_appointment.php" class="appointment-link"></a>
         <div class="appointment-box">
             <div class="appointment-info">
                 <p>Upcoming Appointment:</p>
@@ -25,63 +26,32 @@
         
         <h1 class="tagline">Your Best Smiles Starts Here!</h1>
 
-        <!-- Add this inside hero.html, after your tagline and before </section> -->
-        <div id="login-popup" class="login-popup-overlay" style="display:none;">
-            <div class="login-popup-content">
-                <span class="close-btn" onclick="closeLoginPopup()">&times;</span>
-                <form method="post" action="../utils/login.php">
-                    <h2>Login</h2>
-                    <div>
-                        <label>Username:</label>
-                        <input type="text" name="username" required>
-                    </div>
-                    <div>
-                        <label>Password:</label>
-                        <input type="password" name="password" required>
-                    </div>
-                    <div style="margin-top:10px;">
-                        <button type="submit">Login</button>
-                    </div>
-                </form>
-            </div>
-        </div>
-        <style>
-            .login-popup-overlay {
-                position: fixed;
-                top: 0;
-                left: 0;
-                width: 100%;
-                height: 100%;
-                background-color: rgba(0, 0, 0, 0.5);
-                display: flex;
-                justify-content: center;
-                align-items: center;
-            }
-            .login-popup-content {
-                background-color: white;
-                padding: 20px;
-                border-radius: 5px;
-                width: 300px;
-            }
-            .close-btn {
-                cursor: pointer;
-                float: right;
-                font-size: 24px;
-            }
-        </style>
+        <div id="login-popup-container"></div>
 
     </section>
     <script>
         function openLoginPopup() {
-            document.getElementById('login-popup').style.display = 'flex';
+            // Only load if not already loaded
+            if (!document.getElementById('login-popup')) {
+                fetch('components/login.html')
+                    .then(response => response.text())
+                    .then(html => {
+                        document.getElementById('login-popup-container').innerHTML = html;
+                        document.getElementById('login-popup').style.display = 'flex';
+                    });
+            } else {
+                document.getElementById('login-popup').style.display = 'flex';
+            }
         }
         function closeLoginPopup() {
-            document.getElementById('login-popup').style.display = 'none';
+            if (document.getElementById('login-popup')) {
+                document.getElementById('login-popup').style.display = 'none';
+            }
         }
         // Optional: Close popup when clicking outside the form
         window.onclick = function(event) {
             var popup = document.getElementById('login-popup');
-            if (event.target === popup) {
+            if (popup && event.target === popup) {
                 popup.style.display = "none";
             }
         }
