@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Easy Smile Dental Clinic</title>
+    <!-- Google Fonts - Poppins -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+            font-size: 14px; /* Default font size for the whole page */
+        }
+        
+        .top-header {
+            background-color: #2196F3;
+            color: white;
+            padding: 10px 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .contact-info {
+            display: flex;
+            gap: 40px; /* Increased spacing between contact items */
+            margin-left: 20px;
+        }
+        
+        .contact-info a {
+            color: white;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 400;
+            font-size: 13px; /* Smaller font for contact info */
+        }
+        
+        .social-media {
+            display: flex;
+            gap: 15px;
+            margin-right: 20px;
+            justify-content: flex-end; /* Ensures right alignment */
+        }
+        
+        .social-media a {
+            color: white;
+            background-color: rgba(255, 255, 255, 0.2);
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: background-color 0.3s;
+            font-size: 14px; /* Font size for icons */
+        }
+        
+        .social-media a:hover {
+            background-color: rgba(255, 255, 255, 0.3);
+        }
+        
+        /* Hero section styles */
+        .hero {
+            position: relative;
+            background-image: url('../static/images/hero_image.png');
+            background-size: cover;
+            background-position: center;
+            height: 550px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            color: #fff;
+            text-align: center;
+        }
+        
+        .login-section {
+            position: absolute;
+            top: 20px;
+            left: 40px;
+            background-color: rgba(33, 150, 243, 0.8);
+            padding: 15px 20px;
+            border-radius: 10px;
+            text-align: left;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        }
+        
+        .login-section h2 {
+            margin-bottom: 5px;
+            font-size: 22px;
+            color: white;
+            font-weight: 600;
+        }
+        
+        .appointment-info {
+            font-size: 14px;
+            margin-top: 5px;
+        }
+        
+        .logo-container {
+            margin-top: 100px; /* Added this line to lower the logo */
+            margin-bottom: 40px;
+            max-width: 600px; 
+            width: 80%; 
+        }
+        
+        .logo-container img {
+            max-width: 100%;
+            height: auto;
+            display: block; /* Ensures proper image rendering */
+        }
+        
+        .book-now {
+            background-color: #0B5ED7;
+            color: white;
+            border: none;
+            padding: 12px 35px;
+            font-size: 16px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-weight: bold;
+            text-transform: uppercase;
+            margin-bottom: 25px;
+            transition: background-color 0.3s;
+            display: inline-block;
+            text-decoration: none;
+        }
+        
+        .book-now:hover {
+            background-color: #0A4DAA;
+        }
+        
+        .create-account {
+            margin-bottom: 30px;
+            font-size: 14px;
+            color: white;
+        }
+        
+        .create-account a {
+            color: white;
+            text-decoration: none;
+        }
+        
+        .create-account a:hover {
+            text-decoration: underline;
+        }
+        
+        .tagline {
+            font-size: 30px;
+            font-weight: 700;
+            margin-bottom: 20px;
+            color: white;
+            text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.5);
+        }
+        
+        .services-banner {
+            background-color: #2196F3;
+            color: white;
+            padding: 15px 0;
+            text-align: center;
+            font-size: 24px;
+            font-weight: bold;
+        }
+        
+        .log-out-link {
+            position: absolute;
+            top: 20px;
+            right: 40px;
+            color: white;
+            text-decoration: none;
+            font-size: 14px;
+        }
+
+        .log-out-link:hover {
+            text-decoration: underline;
+        }
+        
+        @media (max-width: 768px) {
+            .top-header {
+                flex-direction: column;
+                gap: 10px;
+                padding: 10px;
+            }
+            
+            .contact-info {
+                flex-direction: column;
+                gap: 10px;
+                margin-left: 0;
+            }
+            
+            .social-media {
+                margin-right: 0;
+            }
+            
+            .hero {
+                height: auto;
+                min-height: 400px;
+                padding: 40px 20px;
+            }
+            
+            .login-section {
+                position: relative;
+                top: 0;
+                left: 0;
+                margin-bottom: 20px;
+                width: 100%;
+            }
+            
+            .tagline {
+                font-size: 24px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="top-header">
+        <div class="contact-info">
+            <a href="tel:09455808022">
+                <i class="fas fa-phone"></i>
+                09455808022
+            </a>
+            <a href="#">
+                <i class="fas fa-map-marker-alt"></i>
+                Zone 1 Brgy. Luyos Tanauan City, Batangas
+            </a>
+            <a href="mailto:easysmiledentalclinic@gmail.com">
+                <i class="fas fa-envelope"></i>
+                easysmiledentalclinic@gmail.com
+            </a>
+        </div>
+        <div class="social-media">
+            <a href="#" aria-label="Facebook">
+                <i class="fab fa-facebook-f"></i>
+            </a>
+            <a href="#" aria-label="Instagram">
+                <i class="fab fa-instagram"></i>
+            </a>
+            <a href="#" aria-label="Twitter">
+                <i class="fab fa-twitter"></i>
+            </a>
+        </div>
+    </header>
+    
+    <!-- Hero Section -->
+      
+    <section class="hero">
+       
+        <div class="login-section">
+            <h2>Login/Hi, Iyah!</h2>
+            <div class="appointment-info">
+                <p>Upcoming Appointment:</p>
+                <p>May 31, Saturday</p>
+            </div>
+        </div>
+        
+        <div class="logo-container">
+            <img src="../static/images/EasySmileLogo.png" alt="Easy Smile Dental and Orthodontics Clinic">
+        </div>
+        
+        <a href="#" class="book-now">BOOK NOW</a>
+        
+        <div class="create-account">
+            <a href="#">Need an Account? Create one!</a>
+        </div>
+        
+        <h1 class="tagline">Your Best Smiles Starts Here!</h1>
+    </section>
+    
+    <div class="services-banner">
+        Services Offered
+    </div>
+    
+    <!-- Main content goes here -->
+</body>
+</html>
