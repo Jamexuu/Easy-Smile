@@ -188,6 +188,83 @@
         .log-out-link:hover {
             text-decoration: underline;
         }
+
+
+        /* Our Dentist Section Styles */
+        .our-dentist-section {
+            background-color: #2196F3;
+            padding: 60px 0;
+            color: white;
+            width: 100%;
+        }
+
+        .our-dentist-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 40px;
+        }
+
+        .our-dentist-content {
+            flex: 1;
+            max-width: 600px;
+        }
+
+        .our-dentist-heading {
+            font-size: 48px;
+            font-weight: 700;
+            margin-bottom: 20px;
+            color: white;
+        }
+
+        .our-dentist-name {
+            font-size: 24px;
+            margin: 0 0 20px 0;
+            font-weight: 500;
+            color: white;
+        }
+
+        .our-dentist-bio {
+            line-height: 1.6;
+            margin-bottom: 15px;
+            color: white;
+            font-size: 14px;
+        }
+
+        .our-dentist-image-container {
+            border: 5px solid white;
+            flex-shrink: 0;
+            width: 300px;
+            height: 300px;
+            border-radius: 50%;
+            overflow: hidden;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+        }
+
+        .our-dentist-image {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        /* Responsive styles */
+        @media (max-width: 768px) {
+            .our-dentist-container {
+                flex-direction: column-reverse;
+                text-align: center;
+            }
+            
+            .our-dentist-content {
+                margin-top: 30px;
+            }
+            
+            .our-dentist-image-container {
+                width: 200px;
+                height: 200px;
+            }
+        }
         
         @media (max-width: 768px) {
             .top-header {
@@ -257,10 +334,8 @@
         /* Services Grid Styles */
         .services-grid {
             max-width: 1200px;
-           align-self: center;
-            margin-top: 80px; 
-            margin-left: 250px; /* Centered with left margin */
-            padding: 50px;
+            margin: 80px auto 0; /* Top margin and auto left/right margins for centering */
+            padding: 0 20px 50px;
             display: flex;
             flex-direction: column;
             gap: 30px; /* Space between rows */
@@ -300,6 +375,61 @@
             
             .service-item {
                 width: 100%;
+            }
+        }
+
+        /* Our Dentist Section */
+        .our-dentist-section {
+            background-color: #2196F3; /* Changed from #f9f9f9 to blue */
+            padding: 60px 0;
+        }
+        
+        .our-dentist-heading {
+            font-size: 48px; /* Increased size to match image */
+            margin-bottom: 20px;
+            color: white; /* Changed from #1167B1 to white */
+            font-weight: 700;
+        }
+        
+        .our-dentist-name {
+            font-size: 24px;
+            margin: 0 0 20px 0;
+            font-weight: 500;
+            color: white; /* Changed from #333 to white */
+        }
+        
+        .our-dentist-bio {
+            line-height: 1.6;
+            margin-bottom: 15px;
+            color: white; /* Changed from #666 to white */
+            font-size: 14px;
+        }
+        
+        .our-dentist-image-container {
+            border: 5px solid white; /* Changed from #11B8CE to white */
+            flex-shrink: 0;
+            width: 300px;
+            height: 300px;
+            border-radius: 50%;
+            overflow: hidden;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+        }
+        
+        .our-dentist-image {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        @media (max-width: 768px) {
+            .our-dentist-container {
+                flex-direction: column;
+                text-align: center;
+            }
+            
+            .our-dentist-image {
+                width: 150px;
+                height: 150px;
             }
         }
     </style>
@@ -394,6 +524,28 @@
             <div class="service-item">
                 <img src="../static/images/ngipinbullet.png" alt="Service 6">
                 <span>Oral Surgery</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Our Dentist Section -->
+    <div class="our-dentist-section">
+        <div class="our-dentist-container">
+            <div class="our-dentist-content">
+                <h2 class="our-dentist-heading">Our Dentist</h2>
+                <h3 class="our-dentist-name">Dr. Willie Revillame</h3>
+                <p class="our-dentist-bio">
+                    Willie Revillame is a popular Filipino television host, writer, songwriter, comedian, 
+                    and businessman. He is best known for hosting various hit game and variety shows 
+                    in the Philippines, such as Wowowee, Willing Willie, and Wowowin. With his 
+                    signature charm, humor, and generosity, Willie became a household name, 
+                    admired for his dedication to entertaining and helping ordinary Filipinos. Beyond 
+                    showbiz, he is also a successful entrepreneur and music artist, known for books like 
+                    Ikaw Na Nga and Boom Tarat Tarat.
+                </p>
+            </div>
+            <div class="our-dentist-image-container">
+                <img src="../static/images/dentistpicture.jpg" alt="Dr. Willie Revillame" class="our-dentist-image">
             </div>
         </div>
     </div>
