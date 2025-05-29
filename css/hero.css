@@ -73,12 +73,12 @@
 .create-account {
     margin-bottom: 30px;
     font-size: 14px;
-    color: white;
+    color: #0B5ED7;
 }
 
 .create-account a {
-    color: white;
-    text-decoration: none;
+    color: #0B5ED7;
+    text-decoration: underline 1pt solid #0B5ED7;
 }
 
 .create-account a:hover {

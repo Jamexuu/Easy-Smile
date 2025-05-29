@@ -27,8 +27,9 @@
         <img src="static/images/smalllogonotext.png">
     </div>
 
-    <footer class="top-header">
+   
+</body>
+ <footer class="top-header">
         <?php include 'components/footer.html'; ?>
     </footer>
-</body>
 </html>
