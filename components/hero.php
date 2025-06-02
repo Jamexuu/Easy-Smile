@@ -1,7 +1,18 @@
  <!-- Hero Section -->
     <section class="hero">
-        <!-- Login text (outside blue box) -->
-        <a href="#" onclick="openLoginPopup(); return false;"><h2 class="login-heading">Login/Hi, Iyah!</h2></a>
+        
+        <?php session_start(); ?>
+        <a href="#" onclick="openLoginPopup(); return false;">
+            <h2 class="login-heading">
+                <?php
+                    if (isset($_SESSION['username'])){
+                        echo "Hi, " . ucwords(htmlspecialchars($_SESSION['username'])) . "!";
+                    } else {
+                        echo "Login";
+                    }
+                ?>
+            </h2>
+        </a>
         
         <!-- Blue box with appointment only -->  
         <a href="view_appointment.php" class="appointment-link"></a>
