@@ -18,7 +18,7 @@
         <?php include 'components/header.html'; ?>
     </header>
     
-    <?php include 'components/hero.html'; ?>
+    <?php include 'components/hero.php'; ?>
     <?php include 'components/services.html'; ?>
 
     <?php include 'components/dentist.html'; ?>

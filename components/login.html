@@ -145,3 +145,18 @@
         text-decoration: underline;
     }
 </style>
+<script>
+window.addEventListener('DOMContentLoaded', function() {
+    const params = new URLSearchParams(window.location.search);
+    const error = params.get('error');
+    if (error) {
+        const errorDiv = document.createElement('p');
+        errorDiv.className = 'error';
+        errorDiv.textContent = error;
+        // Insert error message above the form
+        const form = document.querySelector('.login-popup-content form');
+        form.parentNode.insertBefore(errorDiv, form);
+    }
+});
+</script>
+
