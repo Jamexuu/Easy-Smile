@@ -52,69 +52,64 @@ h1 {
     background-color: #0d8aed;
 }
 
-.appointment-view-container {
-            max-width: 500px;
-            margin: 30px auto;
-            padding: 20px;
-            background-color: #EEEEEE;
-            border-radius: 4px;
-        }
-        
-        h1 {
-            color: #333;
-            font-size: 28px;
-            font-weight: 500;
-            margin-bottom: 20px;
-        }
-        
-        .appointment-date {
-            font-size: 24px;
-            font-weight: 700;
-            color: #0d3c6c;
-            margin-bottom: 25px;
-        }
-        
-        .appointment-details {
-            margin-bottom: 30px;
-        }
-        
-        .detail-row {
-            margin-bottom: 12px;
-            display: flex;
-        }
-        
-        .detail-label {
-            font-weight: 500;
-            margin-right: 10px;
-        }
-        
-        .cancel-button {
-            width: 100%;
-            padding: 12px;
-            background-color: #2196F3;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            font-family: 'Poppins', sans-serif;
-            font-size: 16px;
-            font-weight: 500;
-            cursor: pointer;
-        }
-        
-        .cancel-button:hover {
-            background-color: #0d8aed;
-        }
-        
-        @media (max-width: 600px) {
-            .appointment-view-container {
-                padding: 15px;
-                margin: 15px auto;
-            }
-        }
 
-@media (max-width: 600px) {
-    .appointment-view-container {
-        padding: 15px;
-        margin: 15px auto;
-    }
+/* Add these styles to your existing view_appointment.css */
+.appointment-time {
+    background:#0d8aed;
+    color: white;
+    padding: 10px 20px;
+    border-radius: 25px;
+    text-align: center;
+    font-weight: 500;
+    margin-bottom: 20px;
+    font-size: 16px;
+}
+
+.status-pending {
+    color: #f39c12;
+    font-weight: bold;
+}
+
+.status-confirmed {
+    color: #27ae60;
+    font-weight: bold;
+}
+
+.status-cancelled {
+    color: #e74c3c;
+    font-weight: bold;
+}
+
+.action-buttons {
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+    margin-top: 20px;
+}
+
+.book-another-btn,
+.home-btn {
+    padding: 12px 24px;
+    border-radius: 25px;
+    text-decoration: none;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.book-another-btn {
+    background-color: #3498db;
+    color: white;
+}
+
+.home-btn {
+    background-color: #95a5a6;
+    color: white;
+}
+
+.book-another-btn:hover {
+    background-color: #2980b9;
+}
+
+.home-btn:hover {
+    background-color: #7f8c8d;
 }
