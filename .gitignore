@@ -1,0 +1,40 @@
+# virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
+hs_err_pid*
+
+
+# Intellij
+.idea/
+*.iml
+*.iws
+
+# Maven
+log/
+target/
+
+##############################
+## Visual Studio Code
+##############################
+.vscode/
+.code-workspace
+
+# Compiled Files
+*.class
+build/
+/bin1/
+java/build/**
+
+# Compiled class files
+*.class
+
+# Build directories
+build/
+target/
+
+# IDE files
+.vscode/
+.idea/
+*.iml
+
+# OS files
+.DS_Store
+Thumbs.db
