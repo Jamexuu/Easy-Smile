@@ -27,7 +27,6 @@ java/build/**
 *.class
 
 # Build directories
-bin/
 build/
 target/
 
