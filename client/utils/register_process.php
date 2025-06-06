@@ -47,7 +47,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $conn = create_connection();
             
             // Check if email already exists
-            $checkEmail = $conn->prepare("SELECT id FROM patients WHERE email = ?");
+            $checkEmail = $conn->prepare("SELECT user_id FROM patients_tbl WHERE email = ?");
             $checkEmail->bind_param("s", $email);
             $checkEmail->execute();
             $result = $checkEmail->get_result();
@@ -59,12 +59,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
                 
                 // Insert new patient
-                $stmt = $conn->prepare("INSERT INTO patients (first_name, last_name, birth_date, gender, phone, email, password, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, NOW())");
+                $stmt = $conn->prepare("INSERT INTO patients_tbl (first_name, last_name, birth_date, gender, phone, email, password, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, NOW())");
                 $stmt->bind_param("sssssss", $firstName, $lastName, $birthDate, $gender, $phone, $email, $hashedPassword);
                 
                 if ($stmt->execute()) {
                     $_SESSION['success'] = "Registration successful! You can now login.";
-                    header("Location: ../components/login.html?success=1");
+                    header("Location: ../../index.php?registration=success");
                     exit();
                 } else {
                     $errors[] = "Registration failed. Please try again.";
@@ -85,12 +85,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     if (!empty($errors)) {
         $_SESSION['errors'] = $errors;
         $_SESSION['form_data'] = $_POST; // Preserve form data
-        header("Location: ../create_new_account.php");
+        header("Location: create_new_account.php");
         exit();
     }
 } else {
     // Redirect if accessed directly
-    header("Location: ../create_new_account.php");
+    header("Location: create_new_account.php");
     exit();
 }
 ?>

@@ -1,11 +1,11 @@
- .top-header {
-            background-color: #2196F3;
-            color: white;
-            padding: 10px 0;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
+.top-header {
+    background-color: #2196F3;
+    color: white;
+    padding: 10px 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
         
         .contact-info {
             display: flex;
@@ -46,11 +46,3 @@
         .social-media a:hover {
             background-color: rgba(255, 255, 255, 0.3);
         }
-        @media (max-width: 768px) {
-.top-header {
-flex-direction: column;
-gap: 10px;
-padding: 10px;
-}
-
-}

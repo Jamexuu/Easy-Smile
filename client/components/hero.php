@@ -1,4 +1,9 @@
-<?php session_start(); ?>
+<?php 
+// Only start session if not already started
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+?>
 <!-- Hero Section -->
 <section class="hero">
     
@@ -23,18 +28,17 @@
         <a href="#" onclick="openLoginPopup(); return false;">
             <h2 class="login-heading">Login</h2>
         </a>
-        
-        <div class="create-account">
-            <a href="client/utils/create_new_account.php">Need an Account? Create one!</a>
-        </div>
     <?php endif; ?>
     
     <div class="logo-container">
         <img src="client/static/images/EasySmileLogo.png" alt="Easy Smile Dental and Orthodontics Clinic">
     </div>
     
-    <a href="#" class="book-now">BOOK NOW</a>
-    
+    <a href="client/utils/schedule_appointment.php" class="book-now">BOOK NOW</a>
+
+    <div class="create-account">
+            <a href="client/utils/create_new_account.php">Need an Account? Create one!</a>
+    </div>
     <h1 class="tagline">Your Best Smiles Starts Here!</h1>
 
     <!-- Login popup container (only show when not logged in) -->
@@ -49,20 +53,26 @@
         <?php if (!isset($_SESSION['user_name'])): ?>
             if (!document.getElementById('login-popup')) {
                 fetch('client/components/login.html')
-                    .then(response => response.text())
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error(`HTTP ${response.status}`);
+                        }
+                        return response.text();
+                    })
                     .then(html => {
                         document.getElementById('login-popup-container').innerHTML = html;
                         document.getElementById('login-popup').style.display = 'flex';
                     })
                     .catch(error => {
                         console.error('Error loading login form:', error);
+                        alert('Could not load login form. Please refresh the page.');
                     });
             } else {
                 document.getElementById('login-popup').style.display = 'flex';
             }
         <?php else: ?>
             // Redirect to appointments or dashboard
-            window.location.href = 'view_appointment.php';
+            alert('You are already logged in as <?= htmlspecialchars($_SESSION['user_name']) ?>');
         <?php endif; ?>
     }
     

@@ -37,7 +37,7 @@
         unset($_SESSION['form_data']);
         ?>
         
-        <form action="utils/register_process.php" method="POST" class="register-form">
+        <form action="register_process.php" method="POST" class="register-form">
             <div class="form-row">
                 <div class="form-group">
                     <label for="firstName">First Name</label>

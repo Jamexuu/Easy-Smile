@@ -1,10 +1,13 @@
-<!-- Add this inside hero.html, after your tagline and before </section> -->
 <div id="login-popup" class="login-popup-overlay" style="display:none;">
     <div class="login-popup-content">
         <span class="login-label">Login</span>
         <span class="close-btn" onclick="closeLoginPopup()">&times;</span>
         <div class="rectangle">Welcome to EasySmile Dental Clinic</div>
-        <form method="post" action="client/utils/login.php">
+
+        <!-- Error message container -->
+        <div id="error-container"></div>
+
+        <form method="post" action="client/utils/login.php" id="login-form">
             <div>
                 <label>Email</label>
                 <input type="email" name="email" required>
@@ -20,7 +23,7 @@
                 <a href="forgot_password.php" class="forgot-link">Forgot password?</a>
             </div>
             <div style="text-align:center; margin-top:8px;">
-                <a href="create_new_account.php" class="create-account-link">Need an account? Create one!</a>
+                <a href="client/utils/create_new_account.php" class="create-account-link">Need an account? Create one!</a>
             </div>
         </form>
     </div>
@@ -146,26 +149,6 @@
     }
 </style>
 <script>
-    window.addEventListener('DOMContentLoaded', function() {
-        const params = new URLSearchParams(window.location.search);
-        const error = params.get('error');
-        if (error) {
-            const errorDiv = document.createElement('p');
-            errorDiv.className = 'error';
-            errorDiv.textContent = error;
-            // Insert error message above the form
-            const form = document.querySelector('.login-popup-content form');
-            form.parentNode.insertBefore(errorDiv, form);
-        }
-    });
-
-    function showError(message) {
-        const errorContainer = document.getElementById('error-container');
-        if (errorContainer) {
-            errorContainer.innerHTML = `<div class="error">${message}</div>`;
-        }
-    }
-
     document.addEventListener('DOMContentLoaded', function() {
         const loginForm = document.getElementById('login-form');
         if (loginForm) {
@@ -180,19 +163,19 @@
                 })
                 .then(response => {
                     if (response.redirected) {
-                        // Successful login - redirect to the new page
-                        window.location.href = response.url;
-                    } else {
-                        return response.text();
+                        // Successful login - reload the page to refresh hero component
+                        window.location.reload();
+                        return;
                     }
+                    return response.text();
                 })
-                            .then(text => {
-                    if (text) {
-                        // Check if there's an error in the response
-                        const urlParams = new URLSearchParams(text.split('?')[1]);
+                .then(text => {
+                    if (text && text.includes('error=')) {
+                        // Parse error message
+                        const urlParams = new URLSearchParams(text.split('?')[1] || text);
                         const error = urlParams.get('error');
                         if (error) {
-                            showError(decodeURIComponent(error));
+                            showError(decodeURIComponent(error.replace(/\+/g, ' ')));
                         }
                     }
                 })
@@ -202,7 +185,13 @@
                 });
             });
         }
-    });
+    });    
 
+    function showError(message) {
+        const errorContainer = document.getElementById('error-container');
+        if (errorContainer) {
+            errorContainer.innerHTML = `<div class="error">${message}</div>`;
+        }
+    }
 </script>
 

@@ -26,6 +26,21 @@
     <div class="small_footer_logo">
         <img src="client/static/images/smalllogonotext.png">
     </div>
+
+    <?php if (isset($_GET['registration']) && $_GET['registration'] === 'success'): ?>
+        <div id="success-popup-container">
+            <?php include 'client/components/success_popup.html'; ?>
+        </div>
+        
+        <script>
+            // Auto-show popup when page loads
+            window.addEventListener('DOMContentLoaded', function() {
+                if (typeof showSuccessPopup === 'function') {
+                    showSuccessPopup();
+                }
+            });
+        </script>
+    <?php endif; ?>
 </body>
 <footer class="top-header">
     <?php include 'client/components/footer.html'; ?>
