@@ -1,0 +1,50 @@
+/* Add this at the very beginning of your footer.css */
+footer {
+    background-color: #2c3e50;
+    color: white;
+    padding: 40px 0;
+    margin-top: 60px;
+}
+
+/* Update your existing CSS with proper colors */
+footer .contact-info a,
+footer .social-media a {
+    color: #ecf0f1; /* Changed from #333 to light color */
+}
+
+footer .contact-info {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 20px;
+    padding: 0 20px;
+}
+
+footer .contact-info a {
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+footer .social-media {
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+    padding: 0 20px;
+}
+
+footer .social-media a {
+    background-color: #34495e; /* Changed from rgba(0, 0, 0, 0.1) */
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-decoration: none;
+}
+
+footer .social-media a:hover {
+    background-color: #3498db; /* Changed from rgba(0, 0, 0, 0.2) */
+}
