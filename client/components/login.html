@@ -4,10 +4,10 @@
         <span class="login-label">Login</span>
         <span class="close-btn" onclick="closeLoginPopup()">&times;</span>
         <div class="rectangle">Welcome to EasySmile Dental Clinic</div>
-        <form method="post" action="../utils/login.php">
+        <form method="post" action="client/utils/login.php">
             <div>
-                <label>Username</label>
-                <input type="text" name="username" required>
+                <label>Email</label>
+                <input type="email" name="email" required>
             </div>
             <div>
                 <label>Password</label>
@@ -146,17 +146,63 @@
     }
 </style>
 <script>
-window.addEventListener('DOMContentLoaded', function() {
-    const params = new URLSearchParams(window.location.search);
-    const error = params.get('error');
-    if (error) {
-        const errorDiv = document.createElement('p');
-        errorDiv.className = 'error';
-        errorDiv.textContent = error;
-        // Insert error message above the form
-        const form = document.querySelector('.login-popup-content form');
-        form.parentNode.insertBefore(errorDiv, form);
+    window.addEventListener('DOMContentLoaded', function() {
+        const params = new URLSearchParams(window.location.search);
+        const error = params.get('error');
+        if (error) {
+            const errorDiv = document.createElement('p');
+            errorDiv.className = 'error';
+            errorDiv.textContent = error;
+            // Insert error message above the form
+            const form = document.querySelector('.login-popup-content form');
+            form.parentNode.insertBefore(errorDiv, form);
+        }
+    });
+
+    function showError(message) {
+        const errorContainer = document.getElementById('error-container');
+        if (errorContainer) {
+            errorContainer.innerHTML = `<div class="error">${message}</div>`;
+        }
     }
-});
+
+    document.addEventListener('DOMContentLoaded', function() {
+        const loginForm = document.getElementById('login-form');
+        if (loginForm) {
+            loginForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const formData = new FormData(this);
+                
+                fetch('client/utils/login.php', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => {
+                    if (response.redirected) {
+                        // Successful login - redirect to the new page
+                        window.location.href = response.url;
+                    } else {
+                        return response.text();
+                    }
+                })
+                            .then(text => {
+                    if (text) {
+                        // Check if there's an error in the response
+                        const urlParams = new URLSearchParams(text.split('?')[1]);
+                        const error = urlParams.get('error');
+                        if (error) {
+                            showError(decodeURIComponent(error));
+                        }
+                    }
+                })
+                .catch(error => {
+                    console.error('Login error:', error);
+                    showError('Login failed. Please try again.');
+                });
+            });
+        }
+    });
+
 </script>
 
