@@ -11,25 +11,38 @@
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;700&display=swap" rel="stylesheet">
     <!-- Font Awesome for icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="client/css/style.css">
 </head>
 <body>
     <header class="top-header">
-        <?php include 'components/header.html'; ?>
+        <?php include 'client/components/header.html'; ?>
     </header>
     
-    <?php include 'components/hero.php'; ?>
-    <?php include 'components/services.html'; ?>
+    <?php include 'client/components/hero.php'; ?>
+    <?php include 'client/components/services.html'; ?>
 
-    <?php include 'components/dentist.html'; ?>
+    <?php include 'client/components/dentist.html'; ?>
 
     <div class="small_footer_logo">
-        <img src="static/images/smalllogonotext.png">
+        <img src="client/static/images/smalllogonotext.png">
     </div>
 
-   
+    <?php if (isset($_GET['registration']) && $_GET['registration'] === 'success'): ?>
+        <div id="success-popup-container">
+            <?php include 'client/components/success_popup.html'; ?>
+        </div>
+        
+        <script>
+            // Auto-show popup when page loads
+            window.addEventListener('DOMContentLoaded', function() {
+                if (typeof showSuccessPopup === 'function') {
+                    showSuccessPopup();
+                }
+            });
+        </script>
+    <?php endif; ?>
 </body>
- <footer class="top-header">
-        <?php include 'components/footer.html'; ?>
-    </footer>
+<footer class="top-header">
+    <?php include 'client/components/footer.html'; ?>
+</footer>
 </html>
