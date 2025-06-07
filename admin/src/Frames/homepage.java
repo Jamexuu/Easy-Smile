@@ -1,3 +1,4 @@
+package Frames;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
@@ -68,7 +69,9 @@ public class homepage extends JFrame{
                     dispose();
                     break;
                 case "Account Information":
-                    // Account Management
+                    AccountManagement accountInfo = new AccountManagement();
+                    accountInfo.initialize();
+                    dispose();
                     break;
                 case "Clinic Information":
                     clinicInformationFrame clinicInfo = new clinicInformationFrame();
@@ -102,7 +105,7 @@ public class homepage extends JFrame{
         
         /* Logo */
         JLabel logoImage = new JLabel();
-        ImageIcon icon = new ImageIcon("static/images/EasySmileLogo.png");
+        ImageIcon icon = new ImageIcon("client/static/images/EasySmileLogo.png");
         icon = new ImageIcon(icon.getImage().getScaledInstance(460, 170, Image.SCALE_SMOOTH));
         logoImage.setIcon(icon);
         /* Buttons */

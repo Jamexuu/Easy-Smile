@@ -412,8 +412,7 @@ public class AccountManagement extends JFrame {
             
         if (confirm == JOptionPane.YES_OPTION) {
             dispose();
-            // TODO: Navigate to home screen
-            // new HomeFrame().setVisible(true);
+            new homepage().home(); // Navigate back to homepage
         }
     }
 
@@ -559,16 +558,14 @@ public class AccountManagement extends JFrame {
     static class ActionsEditor extends AbstractCellEditor implements TableCellEditor {
         private JPanel panel;
         private final JTable table;
-        private final List<JTextField> sidebarFields;
         private int currentRow;
 
         public ActionsEditor(JTable table, List<JTextField> sidebarFields) {
             this.table = table;
-            this.sidebarFields = sidebarFields;
         }
 
         @Override
-        public Component getTableCellEditorComponent(JTable table, Object value, 
+        public Component getTableCellEditorComponent(JTable tableParam, Object value, 
                 boolean isSelected, int row, int column) {
             this.currentRow = row;
             panel = new JPanel(new FlowLayout(FlowLayout.CENTER, 3, 0));
@@ -586,7 +583,6 @@ public class AccountManagement extends JFrame {
                     fireEditingStopped();
                 });
             });
-
             deleteBtn.addActionListener(e -> {
                 SwingUtilities.invokeLater(() -> {
                     AccountManagement parent = (AccountManagement) SwingUtilities.getWindowAncestor(table);
@@ -599,7 +595,7 @@ public class AccountManagement extends JFrame {
 
             panel.add(viewBtn);
             panel.add(deleteBtn);
-            panel.setBackground(isSelected ? table.getSelectionBackground() : table.getBackground());
+            panel.setBackground(isSelected ? tableParam.getSelectionBackground() : tableParam.getBackground());
             return panel;
         }
 
