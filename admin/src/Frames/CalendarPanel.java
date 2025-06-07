@@ -1,14 +1,10 @@
 package Frames;
-//package Frames;
 
-//import dao.AppointmentDAO;
 import javax.swing.*;
 import javax.swing.table.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.sql.SQLException;
-import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.List;
@@ -21,7 +17,6 @@ public class CalendarPanel extends JPanel {
     private JButton prevButton, nextButton;
 
     private final String[] DAYS_OF_WEEK = {"Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"};
-    private final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
     public CalendarPanel() {
         setLayout(new BorderLayout());
@@ -34,12 +29,6 @@ public class CalendarPanel extends JPanel {
 
         // Create the calendar table
         createCalendarTable();
-
-        // Populate the calendar with the current month's data
-        //populateCalendar();
-
-        // Register as a listener to update the calendar when appointments change
-        //AppointmentDAO.addChangeListener(this::populateCalendar);
     }
 
     private void createNavigationPanel() {
@@ -60,17 +49,17 @@ public class CalendarPanel extends JPanel {
             @Override
             public void actionPerformed(ActionEvent e) {
                 currentCalendar.add(Calendar.MONTH, -1);
-                /*populateCalendar();*/
+                updateMonthYearLabel();
             }
         });
 
-        /*nextButton.addActionListener(new ActionListener() {
+        nextButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 currentCalendar.add(Calendar.MONTH, 1);
-                populateCalendar();
+                updateMonthYearLabel();
             }
-        });*/
+        });
 
         buttonPanel.add(prevButton);
         buttonPanel.add(nextButton);
@@ -107,95 +96,6 @@ public class CalendarPanel extends JPanel {
         JScrollPane scrollPane = new JScrollPane(calendarTable);
         add(scrollPane, BorderLayout.CENTER);
     }
-
-    /*private void populateCalendar() {
-        // Update the month/year label
-        updateMonthYearLabel();
-
-        // Clear the table
-        for (int i = 0; i < 6; i++) {
-            for (int j = 0; j < 7; j++) {
-                calendarModel.setValueAt(null, i, j);
-            }
-        }
-
-        // Get first day of month and number of days
-        Calendar cal = (Calendar) currentCalendar.clone();
-        cal.set(Calendar.DAY_OF_MONTH, 1);
-
-        int firstDayOfMonth = cal.get(Calendar.DAY_OF_WEEK) - 1;
-        int daysInMonth = cal.getActualMaximum(Calendar.DAY_OF_MONTH);
-
-        // Fill the calendar cells with days
-        int row = 0;
-        int column = firstDayOfMonth;
-
-        for (int day = 1; day <= daysInMonth; day++) {
-            cal.set(Calendar.DAY_OF_MONTH, day);
-            DayCell dayCell = new DayCell(day, cal.getTime(), new ArrayList<>());
-            calendarModel.setValueAt(dayCell, row, column);
-
-            column++;
-            if (column > 6) {
-                column = 0;
-                row++;
-            }
-        }
-
-        // Load appointments
-        loadAppointments();
-    }*/
-
-    /*private void loadAppointments() {
-        try {
-            // Get all appointments
-            List<Object[]> appointments = AppointmentDAO.getAllAppointments();
-
-            // Add appointments to the appropriate day cells
-            for (Object[] appointment : appointments) {
-                String dateStr = (String) appointment[3]; // appointment_date
-
-                try {
-                    Date appointmentDate = sdf.parse(dateStr);
-
-                    // Find the cell for this date
-                    for (int i = 0; i < calendarTable.getRowCount(); i++) {
-                        for (int j = 0; j < calendarTable.getColumnCount(); j++) {
-                            Object value = calendarTable.getValueAt(i, j);
-                            if (value instanceof DayCell) {
-                                DayCell dayCell = (DayCell) value;
-
-                                Calendar cellCal = Calendar.getInstance();
-                                cellCal.setTime(dayCell.getDate());
-
-                                Calendar appCal = Calendar.getInstance();
-                                appCal.setTime(appointmentDate);
-
-                                // Check if this is the right day (ignore time)
-                                if (cellCal.get(Calendar.YEAR) == appCal.get(Calendar.YEAR) &&
-                                        cellCal.get(Calendar.MONTH) == appCal.get(Calendar.MONTH) &&
-                                        cellCal.get(Calendar.DAY_OF_MONTH) == appCal.get(Calendar.DAY_OF_MONTH)) {
-
-                                    dayCell.addAppointment(appointment);
-                                }
-                            }
-                        }
-                    }
-                } catch (ParseException e) {
-                    e.printStackTrace();
-                }
-            }
-
-            // Refresh the display
-            calendarTable.repaint();
-
-        } catch (SQLException e) {
-            JOptionPane.showMessageDialog(this,
-                    "Error loading appointments: " + e.getMessage(),
-                    "Database Error",
-                    JOptionPane.ERROR_MESSAGE);
-        }
-    }*/
 
     private void updateMonthYearLabel() {
         SimpleDateFormat sdf = new SimpleDateFormat("MMMM yyyy");
@@ -263,11 +163,12 @@ public class CalendarPanel extends JPanel {
     }
 
     // Helper class to store day information and appointments
-    private static class DayCell {
+     private static class DayCell {
         private int day;
         private Date date;
         private List<Object[]> appointments;
 
+        @SuppressWarnings("unused")
         public DayCell(int day, Date date, List<Object[]> appointments) {
             this.day = day;
             this.date = date;
@@ -286,6 +187,7 @@ public class CalendarPanel extends JPanel {
             return appointments;
         }
 
+        @SuppressWarnings("unused")
         public void addAppointment(Object[] appointment) {
             appointments.add(appointment);
         }

@@ -5,7 +5,8 @@ import java.awt.event.ActionListener;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import javax.swing.*;
-import DAO.userDAO; // Import the DAO
+import DAO.adminDAO; // Import the DAO
+import main.Main;
 
 public class LoginFrame {
     private final Font mainFont = new Font("Segoe Ui", Font.BOLD, 18);
@@ -19,13 +20,10 @@ public class LoginFrame {
         this.parentFrame = parentFrame;
     }
     
-    // Remove the validateCredentials method - now handled by DAO
-    
     /**
      * Creates and returns the login form panel
      */
     public JPanel createLoginForm() {
-        // ...existing code... (no changes needed here)
         JLabel lbEmail = new JLabel("Email");
         lbEmail.setFont(mainFont);
         lbEmail.setBounds(100, -10, 100, 30);
@@ -132,29 +130,46 @@ public class LoginFrame {
      * Inner class for login button action
      */
     private class LoginActionListener implements ActionListener {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                String email = tfEmail.getText();
-                String password = new String(tfPassword.getPassword());
-                
-                // Skip validation if placeholder text is still showing
-                if (email.equals("Enter your email") || password.equals("Enter your password")) {
-                    JOptionPane.showMessageDialog(parentFrame, "Please enter your credentials", "Login Error", JOptionPane.ERROR_MESSAGE);
-                    return;
-                }
-                
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            String email = tfEmail.getText();
+            String password = new String(tfPassword.getPassword());
+            
+            // Skip validation if placeholder text is still showing
+            if (email.equals("Enter your email") || password.equals("Enter your password")) {
+                JOptionPane.showMessageDialog(parentFrame, "Please enter your credentials", "Login Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+            
+            try {
                 // Use DAO for validation
-                if (userDAO.validateCredentials(email, password)) {
+                if (adminDAO.validateCredentials(email, password)) {
                     JOptionPane.showMessageDialog(parentFrame, "Login Successful!", "Success", JOptionPane.INFORMATION_MESSAGE);
-                    // TODO: Navigate to dashboard or main application
-                    parentFrame.dispose(); // Close login window
+                    
+                    // Navigate to homepage - Fixed: Check if parent is Main class
+                    if (parentFrame instanceof Main) {
+                        ((Main) parentFrame).navigateToHomepage();
+                    } else {
+                        // Fallback: Direct navigation
+                        parentFrame.dispose();
+                        SwingUtilities.invokeLater(() -> {
+                            new homepage().home();
+                        });
+                    }
                 } else {
                     // Use DAO for specific error message
-                    String errorMessage = userDAO.getLoginError(email, password);
+                    String errorMessage = adminDAO.getLoginError(email, password);
                     JOptionPane.showMessageDialog(parentFrame, errorMessage, "Login Error", JOptionPane.ERROR_MESSAGE);
                 }
+            } catch (Exception ex) {
+                JOptionPane.showMessageDialog(parentFrame, 
+                    "Login error: " + ex.getMessage(), 
+                    "System Error", 
+                    JOptionPane.ERROR_MESSAGE);
+                ex.printStackTrace();
             }
         }
+    }
     
     /**
      * Inner class for clear button action

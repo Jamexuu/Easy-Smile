@@ -1,7 +1,7 @@
 package Frames;
 
-import DAO.PatientManagementDAO;
-import DAO.PatientManagementDAO.Patient;
+import DAO.PatientDAO;
+import DAO.PatientDAO.Patient;
 import javax.swing.*;
 import javax.swing.table.*;
 import java.awt.*;
@@ -17,7 +17,7 @@ public class PatientManagementFrame extends JFrame {
     final private Color BLUE_COLOR = Color.decode("#1167B1");
     
     // DAO and data management
-    private PatientManagementDAO patientDAO;
+    private PatientDAO patientDAO;
     private DefaultTableModel tableModel;
     private JTable table;
     private TableRowSorter<DefaultTableModel> tableSorter;
@@ -27,9 +27,11 @@ public class PatientManagementFrame extends JFrame {
     private JTextField searchBar;
     private ArrayList<JTextField> sidebarFields;
 
+    private boolean isInitialized = false; 
+
     public PatientManagementFrame() {
         // Initialize DAO and data structures
-        patientDAO = new PatientManagementDAO();
+        patientDAO = new PatientDAO();
         patientIds = new ArrayList<>();
         
         initialize();
@@ -39,6 +41,16 @@ public class PatientManagementFrame extends JFrame {
     }
 
     public void initialize() {
+        getContentPane().setBackground(Color.decode("#E1E3E5"));
+
+        if (isInitialized) {
+            return;
+        }
+
+        isInitialized = true;
+
+        getContentPane().removeAll();
+
         getContentPane().setBackground(Color.decode("#E1E3E5"));
 
         // --- Logo and Admin label row ---
@@ -302,15 +314,15 @@ public class PatientManagementFrame extends JFrame {
             
             for (Patient patient : patients) {
                 tableModel.addRow(new Object[]{
-                    patient.getId(), // Patient ID
+                    patient.getInternalId(), // Patient ID
                     patient.getFirstName(),
                     patient.getMiddleName() != null ? patient.getMiddleName() : "",
                     patient.getLastName(),
-                    patient.getBirthday(),
+                    patient.getBirthDate(),
                     patient.getGender(),
                     null // Actions column
                 });
-                patientIds.add(patient.getId()); // Store patient ID for this row
+                patientIds.add(patient.getInternalId()); // Store patient ID for this row
             }
         });
     }
@@ -355,8 +367,10 @@ public class PatientManagementFrame extends JFrame {
             
         if (confirm == JOptionPane.YES_OPTION) {
             dispose();
-            // TODO: Navigate to home screen
-            // new HomeFrame().setVisible(true);
+            SwingUtilities.invokeLater(() -> {
+                homepage home = new homepage();
+                home.home();
+            });
         }
     }
 
@@ -591,7 +605,7 @@ public class PatientManagementFrame extends JFrame {
         SwingUtilities.invokeLater(() -> {
             try {
                 // Test database connection before starting
-                PatientManagementDAO testDAO = new PatientManagementDAO();
+                PatientDAO testDAO = new PatientDAO();
                 if (testDAO.testDatabaseOperations()) {
                     new PatientManagementFrame();
                 } else {
