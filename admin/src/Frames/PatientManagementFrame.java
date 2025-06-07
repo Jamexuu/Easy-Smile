@@ -456,13 +456,12 @@ public class PatientManagementFrame extends JFrame {
     // Inner Classes for Table Actions
     static class ActionsEditor extends AbstractCellEditor implements TableCellEditor {
         private JPanel panel;
-        private final JTable table;
-        private final List<JTextField> sidebarFields;
+        private final JTable tableInstance;
         private int currentRow;
 
         public ActionsEditor(JTable table, List<JTextField> sidebarFields) {
-            this.table = table;
-            this.sidebarFields = sidebarFields;
+            this.tableInstance = table;
+            // Remove sidebarFields field since it's not used in this class
         }
 
         @Override
@@ -477,7 +476,7 @@ public class PatientManagementFrame extends JFrame {
 
             viewBtn.addActionListener(e -> {
                 SwingUtilities.invokeLater(() -> {
-                    PatientManagementFrame parent = (PatientManagementFrame) SwingUtilities.getWindowAncestor(table);
+                    PatientManagementFrame parent = (PatientManagementFrame) SwingUtilities.getWindowAncestor(tableInstance);
                     if (parent != null) {
                         parent.viewPatient(currentRow);
                     }
@@ -487,7 +486,7 @@ public class PatientManagementFrame extends JFrame {
 
             deleteBtn.addActionListener(e -> {
                 SwingUtilities.invokeLater(() -> {
-                    PatientManagementFrame parent = (PatientManagementFrame) SwingUtilities.getWindowAncestor(table);
+                    PatientManagementFrame parent = (PatientManagementFrame) SwingUtilities.getWindowAncestor(tableInstance);
                     if (parent != null) {
                         parent.deletePatient(currentRow);
                     }

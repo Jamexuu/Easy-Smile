@@ -1,16 +1,15 @@
-//package Frames;
-
+package Frames;
 import javax.swing.*;
+import javax.swing.text.*;
 import java.awt.*;
-//import java.util.HashMap;
 import java.awt.event.*;
 
-public class clinicInformationFrame extends JFrame {
+public class dentistsInformation extends JFrame {
     Font btnFont = new Font("Segoe Ui", Font.BOLD, 14);
     Font mainFont = new Font("Segoe Ui", Font.BOLD, 20);
 
-    private java.util.Map<String, JTextField> fieldInputs = new java.util.HashMap<>();
-    private String selectedMenu = "Clinic Information"; // Track selected menu
+    private java.util.Map<String, JComponent> fieldInputs = new java.util.HashMap<>();
+    private String selectedMenu = "Dentists Information"; // Track selected menu
 
     // Helper to create menu label with or without underline
     private JLabel makeMenuLabel(String text, boolean underline) {
@@ -21,6 +20,21 @@ public class clinicInformationFrame extends JFrame {
         lbl.setCursor(new Cursor(Cursor.HAND_CURSOR));
         lbl.setFont(mainFont);
         return lbl;
+    }
+    // Helper class to limit JTextArea input length
+    static class JTextAreaLimit extends PlainDocument {
+        private final int limit;
+        JTextAreaLimit(int limit) {
+            super();
+            this.limit = limit;
+        }
+        @Override
+        public void insertString(int offset, String str, AttributeSet attr) throws BadLocationException {
+            if (str == null) return;
+            if ((getLength() + str.length()) <= limit) {
+                super.insertString(offset, str, attr);
+            }
+        }
     }
     public void initialize() {
         getContentPane().setBackground(Color.WHITE);
@@ -127,17 +141,17 @@ public class clinicInformationFrame extends JFrame {
         } else {
             logoImage.setText("Logo");
         }
+        
         JLabel logoAdmin = new JLabel("Admin");
         logoAdmin.setFont(new Font("Segoe Ui", Font.BOLD, 28));
         logoAdmin.setForeground(Color.decode("#192F8F"));
-
         JPanel logoPanel = new JPanel(new BorderLayout());
         logoPanel.setOpaque(false);
         logoPanel.add(logoImage, BorderLayout.WEST);
         logoPanel.setBorder(BorderFactory.createEmptyBorder(5, 2, 10, 10));
 
         // Content for Field Container Pane
-        String[] fieldLabels = {"Phone Number", "Email Address", "Location", "Facebook Link", "Instagram Link"};
+        String[] fieldLabels = {"Title", "First Name", "Middle Name", "Last Name", "Age", "Bio"};
         JPanel fieldsContainer = new JPanel();
         fieldsContainer.setLayout(new BoxLayout(fieldsContainer, BoxLayout.Y_AXIS));
         fieldsContainer.setOpaque(false);
@@ -153,83 +167,80 @@ public class clinicInformationFrame extends JFrame {
             fieldLabel.setFont(new Font("Segoe UI", Font.BOLD, 15));
             fieldLabel.setForeground(Color.decode("#192F8F"));
 
-            JTextField textField = new JTextField();
-            textField.setFont(new Font("Segoe UI", Font.BOLD, 20));
-            textField.setMaximumSize(new Dimension(1000, 35));
-            textField.setBackground(Color.WHITE);
-            textField.setBorder(BorderFactory.createLineBorder(Color.decode("#C0C0C0")));
-            textField.setEditable(false);
+            if (label.equals("Bio")) {
+                JTextArea bioArea = new JTextArea(3, 20);
+                bioArea.setFont(new Font("Segoe UI", Font.BOLD, 20));
+                bioArea.setLineWrap(true);
+                bioArea.setWrapStyleWord(true);
+                bioArea.setBackground(Color.WHITE);
+                bioArea.setBorder(BorderFactory.createLineBorder(Color.decode("#C0C0C0")));
+                bioArea.setEditable(false); // or true if you want user input
+                bioArea.setAlignmentX(Component.LEFT_ALIGNMENT);
+                bioArea.setPreferredSize(new Dimension(400, 80));
+                bioArea.setMaximumSize(new Dimension(1000, 120));
+                // Limit to 500 characters
+                bioArea.setDocument(new JTextAreaLimit(500));
 
-            fieldInputs.put(label, textField);
+                fieldInputs.put(label, bioArea);
+                fieldPanel.add(fieldLabel);
+                fieldPanel.add(bioArea);
+            } else {
+                JTextField textField = new JTextField();
+                textField.setFont(new Font("Segoe UI", Font.BOLD, 20));
+                textField.setBackground(Color.WHITE);
+                textField.setBorder(BorderFactory.createLineBorder(Color.decode("#C0C0C0")));
+                textField.setEditable(true);
+                textField.setAlignmentX(Component.LEFT_ALIGNMENT);
+                textField.setMaximumSize(new Dimension(1000, 35));
+                textField.setPreferredSize(new Dimension(400, 35));
 
-            fieldPanel.add(fieldLabel);
-            fieldPanel.add(textField);
+                fieldInputs.put(label, textField);
+                fieldPanel.add(fieldLabel);
+                fieldPanel.add(textField);
+            }
             fieldsContainer.add(fieldPanel);
             fieldsContainer.add(Box.createVerticalStrut(8));
         }
 
         // Record Panel
-            JPanel recordPanel = new JPanel(new BorderLayout());
-            recordPanel.setBackground(Color.decode("#D0EFFF"));
-            recordPanel.setPreferredSize(new Dimension(260, 0));
-            recordPanel.setBorder(BorderFactory.createCompoundBorder(
-                    BorderFactory.createMatteBorder(0, 2, 0, 0, Color.decode("#FFFFFF")),
-                    BorderFactory.createEmptyBorder(15, 15, 15, 15)
-            ));
+        JPanel recordPanel = new JPanel(new BorderLayout());
+        recordPanel.setBackground(Color.decode("#D0EFFF"));
+        recordPanel.setPreferredSize(new Dimension(260, 0));
+        recordPanel.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createMatteBorder(0, 2, 0, 0, Color.decode("#FFFFFF")),
+                BorderFactory.createEmptyBorder(15, 15, 15, 15)
+        ));
 
-            // Top label
-            JLabel clinicInfoLabel = new JLabel("Clinic Information");
-            clinicInfoLabel.setFont(new Font("Segoe UI", Font.BOLD, 24));
-            clinicInfoLabel.setForeground(Color.decode("#192F8F"));
-            clinicInfoLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+        // Top label
+        JLabel dentistsInfoLabel = new JLabel("Dentists Information");
+        dentistsInfoLabel.setFont(new Font("Segoe UI", Font.BOLD, 24));
+        dentistsInfoLabel.setForeground(Color.decode("#192F8F"));
+        dentistsInfoLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-            // Fields container (vertical box)
-            Box fieldsBox = Box.createVerticalBox();
-            fieldsBox.add(clinicInfoLabel);
-            fieldsBox.add(Box.createVerticalStrut(15));
-            for (String label : fieldLabels) {
-                JPanel fieldPanel = new JPanel();
-                fieldPanel.setLayout(new BoxLayout(fieldPanel, BoxLayout.Y_AXIS));
-                fieldPanel.setOpaque(false);
+        // Fields container (vertical box)
+        Box fieldsBox = Box.createVerticalBox();
+        fieldsBox.add(dentistsInfoLabel);
+        fieldsBox.add(Box.createVerticalStrut(15));
+        fieldsBox.add(fieldsContainer);
 
-                JLabel fieldLabel = new JLabel(label);
-                fieldLabel.setFont(new Font("Segoe UI", Font.BOLD, 20));
-                fieldLabel.setForeground(Color.decode("#192F8F"));
+        // Add fields to CENTER
+        recordPanel.add(fieldsBox, BorderLayout.CENTER);
 
-                JTextField textField = new JTextField();
-                textField.setFont(new Font("Segoe UI", Font.BOLD, 20));
-                textField.setMaximumSize(new Dimension(1000, 35));
-                textField.setBackground(Color.WHITE);
-                textField.setBorder(BorderFactory.createLineBorder(Color.decode("#C0C0C0")));
-                textField.setEditable(false);
+        // Bottom right Save button
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 15, 20));
+        buttonPanel.setOpaque(false);
+        JButton actionBtn = new JButton("Apply Changes");
+        actionBtn.setFont(btnFont);
+        actionBtn.setBackground(Color.decode("#1167B1"));
+        actionBtn.setForeground(Color.WHITE);
+        actionBtn.setOpaque(true);
+        actionBtn.setBorderPainted(false);
+        actionBtn.setFocusPainted(false);
+        actionBtn.setPreferredSize(new Dimension(140, 36));
+        buttonPanel.add(actionBtn);
 
-                fieldInputs.put(label, textField);
-
-                fieldPanel.add(fieldLabel);
-                fieldPanel.add(textField);
-                fieldsBox.add(fieldPanel);
-                fieldsBox.add(Box.createVerticalStrut(8));
-            }
-
-            // Add fields to CENTER
-            recordPanel.add(fieldsBox, BorderLayout.CENTER);
-
-            // Bottom right Save button
-            JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 15,50));
-            buttonPanel.setOpaque(false);
-            JButton actionBtn = new JButton("Apply Changes");
-            actionBtn.setFont(btnFont);
-            actionBtn.setBackground(Color.decode("#1167B1"));
-            actionBtn.setForeground(Color.WHITE);
-            actionBtn.setOpaque(true);
-            actionBtn.setBorderPainted(false);
-            actionBtn.setFocusPainted(false);
-            actionBtn.setPreferredSize(new Dimension(140, 36));
-            buttonPanel.add(actionBtn);
-
-            // Add button panel to SOUTH
-            recordPanel.add(buttonPanel, BorderLayout.SOUTH);
-
+        // Add button panel to SOUTH
+        recordPanel.add(buttonPanel, BorderLayout.SOUTH);
 
         JPanel rightPanel = new JPanel();
         rightPanel.setLayout(new BorderLayout());
@@ -266,7 +277,7 @@ public class clinicInformationFrame extends JFrame {
         mainPanel.add(mainContentPanel, BorderLayout.CENTER);
 
         add(mainPanel);
-        setTitle("Clinic Information");
+        setTitle("Dentists Information");
         setSize(1200, 800);
         setResizable(true);
         setLocationRelativeTo(null);
@@ -285,8 +296,9 @@ public class clinicInformationFrame extends JFrame {
         btn.setFocusPainted(false);
         return btn;
     }
+
     public static void main(String[] args) {
-        clinicInformationFrame myFrame = new clinicInformationFrame();
+        dentistsInformation myFrame = new dentistsInformation();
         myFrame.initialize();
     }
 }

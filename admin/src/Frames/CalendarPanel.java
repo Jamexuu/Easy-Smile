@@ -1,3 +1,4 @@
+package Frames;
 //package Frames;
 
 //import dao.AppointmentDAO;
@@ -205,7 +206,7 @@ public class CalendarPanel extends JPanel {
     private class CalendarCellRenderer extends DefaultTableCellRenderer {
         @Override
         public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected,
-                                                       boolean hasFocus, int row, int column) {
+                                                    boolean hasFocus, int row, int column) {
             JPanel panel = new JPanel();
             panel.setLayout(new BorderLayout());
             panel.setBorder(BorderFactory.createEtchedBorder());
