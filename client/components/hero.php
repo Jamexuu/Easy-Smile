@@ -1,4 +1,4 @@
-<?php 
+<?php
 // Only start session if not already started
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
@@ -33,15 +33,19 @@ if (session_status() === PHP_SESSION_NONE) {
     <div class="logo-container">
         <img src="client/static/images/EasySmileLogo.png" alt="Easy Smile Dental and Orthodontics Clinic">
     </div>
-    
-    <a href="client/utils/schedule_appointment.php" class="book-now">BOOK NOW</a>
+
+    <?php if (isset($_SESSION['user_name'])):?>
+        <a href="client/utils/schedule_appointment.php" class="book-now">BOOK NOW</a>
+    <?php else: ?>
+        <a href="#" onclick="showLoginRequired()" class="book-now">BOOK NOW </a>
+    <?php endif; ?>
 
     <div class="create-account">
             <a href="client/utils/create_new_account.php">Need an Account? Create one!</a>
     </div>
     <h1 class="tagline">Your Best Smiles Starts Here!</h1>
 
-    <!-- Login popup container (only show when not logged in) -->
+    <!-- displays login pop up when the user is not logged in -->
     <?php if (!isset($_SESSION['user_name'])): ?>
         <div id="login-popup-container"></div>
     <?php endif; ?>
@@ -49,6 +53,12 @@ if (session_status() === PHP_SESSION_NONE) {
 </section>
 
 <script>
+    function showLoginRequired() {
+        alert('You need to log in to book an appointment.');
+        openLoginPopup();
+        return false;
+    }
+
     function openLoginPopup() {
         <?php if (!isset($_SESSION['user_name'])): ?>
             if (!document.getElementById('login-popup')) {

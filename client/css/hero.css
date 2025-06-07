@@ -1,22 +1,142 @@
 /* Hero section styles */
 .hero {
-    position: relative;
-    background-image: url('../static/images/hero_image.png');
-    background-size: cover;
-    background-position: center;
-    height: 640px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: 20px;
-    color: #fff;
-    text-align: center;
+position: relative;
+background-image: url('../static/images/hero_image.png');
+background-size: cover;
+background-position: center;
+height: 640px;
+display: flex;
+flex-direction: column;
+align-items: center;
+justify-content: center;
+padding: 20px;
+color: #fff;
+text-align: center;
+z-index: 1;
 }
 
+html, body {
+    position: relative;
+    z-index: 0;
+}
+
+
 .login-section {
+position: absolute;
+top: 20px;
+left: 40px;
+background-color: rgba(33, 150, 243, 0.8);
+padding: 15px 20px;
+border-radius: 10px;
+text-align: left;
+box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+.login-section h2 {
+margin-bottom: 5px;
+font-size: 22px;
+color: #1167B1;
+font-weight: 600;
+}
+
+.appointment-info {
+font-size: 14px;
+margin-top: 5px;
+}
+
+.logo-container {
+margin-top: 40px; /* Added this line to lower the logo */
+margin-bottom: 40px;
+max-width: 600px; 
+width: 80%; 
+}
+
+.logo-container img {
+max-width: 100%;
+height: auto;
+display: block; /* Ensures proper image rendering */
+}
+
+.book-now {
+background-color: #0B5ED7;
+color: white;
+border: none;
+padding: 12px 35px;
+font-size: 16px;
+border-radius: 30px;
+cursor: pointer;
+font-weight: bold;
+text-transform: uppercase;
+margin-bottom: 25px;
+transition: background-color 0.3s;
+display: inline-block;
+text-decoration: none;
+}
+
+.book-now:hover {
+background-color: #0A4DAA;
+}
+
+.create-account {
+margin-bottom: 30px;
+font-size: 14px;
+color: #0B5ED7;
+}
+
+.create-account a {
+color: #0B5ED7;
+text-decoration: underline 1pt solid #0B5ED7;
+}
+
+.create-account a:hover {
+text-decoration: underline;
+}
+
+.tagline {
+font-size: 24px;
+font-weight: 700;
+margin-bottom: 20px;
+color: #1167B1;
+
+}
+
+.services-banner {
+background-color: #2196F3;
+color: white;
+padding: 15px 0;
+text-align: left;
+padding-left: 30px;
+font-size: 24px;
+font-weight: bold;
+}
+
+.log-out-link {
+position: absolute;
+top: 20px;
+right: 40px;
+color: #1167B1;
+text-decoration: none;
+font-size: 14px;
+}
+
+.log-out-link:hover {
+text-decoration: underline;
+}
+
+/* Login heading (outside blue box) */
+.login-heading {
     position: absolute;
     top: 20px;
+    left: 40px;
+    font-size: 22px;
+    color: #1167B1; /* Changed from white to blue */
+    font-weight: 600;
+    
+}
+/* Blue box for appointment only */
+.appointment-box {
+    position: absolute;
+    top: 55px; /* Positioned below the login heading */
     left: 40px;
     background-color: rgba(33, 150, 243, 0.8);
     padding: 15px 20px;
@@ -25,133 +145,49 @@
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
 }
 
-.login-section h2 {
-    margin-bottom: 5px;
-    font-size: 22px;
-    color: #1167B1;
-    font-weight: 600;
-}
-
 .appointment-info {
     font-size: 14px;
-    margin-top: 5px;
-}
-
-.logo-container {
-    margin-top: 40px; /* Added this line to lower the logo */
-    margin-bottom: 40px;
-    max-width: 600px; 
-    width: 80%; 
-}
-
-.logo-container img {
-    max-width: 100%;
-    height: auto;
-    display: block; /* Ensures proper image rendering */
-}
-
-.book-now {
-    background-color: #0B5ED7;
     color: white;
-    border: none;
-    padding: 12px 35px;
-    font-size: 16px;
-    border-radius: 30px;
+}
+
+.appointment-link {
+    text-decoration: none;
+    color: inherit;
+    display: block;
     cursor: pointer;
-    font-weight: bold;
-    text-transform: uppercase;
-    margin-bottom: 25px;
-    transition: background-color 0.3s;
-    display: inline-block;
-    text-decoration: none;
 }
 
-.book-now:hover {
-    background-color: #0A4DAA;
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 999;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.5);
 }
 
-.create-account {
-    margin-bottom: 30px;
-    font-size: 14px;
-    color: #0B5ED7;
-}
-
-.create-account a {
-    color: #0B5ED7;
-    text-decoration: underline 1pt solid #0B5ED7;
-}
-
-.create-account a:hover {
-    text-decoration: underline;
-}
-
-.tagline {
-    font-size: 24px;
-    font-weight: 700;
-    margin-bottom: 20px;
-    color: #1167B1;
-
-}
-
-.services-banner {
-    background-color: #2196F3;
+.modal-content {
+    background-color: #f44336;
     color: white;
-    padding: 15px 0;
-    text-align: left;
-    padding-left: 30px;
-    font-size: 24px;
-    font-weight: bold;
+    padding: 20px;
+    margin: 15% auto;
+    width: 300px;
+    border-radius: 8px;
+    text-align: center;
 }
 
-.log-out-link {
-    position: absolute;
-    top: 20px;
-    right: 40px;
-    color: #1167B1;
-    text-decoration: none;
-    font-size: 14px;
+.close-btn {
+    background-color: white;
+    color: #f44336;
+    padding: 10px 20px;
+    border: none;
+    margin-top: 10px;
+    border-radius: 5px;
+    cursor: pointer;
 }
 
-.log-out-link:hover {
-    text-decoration: underline;
+.close-btn:hover {
+    background-color: #ddd;
 }
-
- /* Login heading (outside blue box) */
-        .login-heading {
-            position: absolute;
-            top: 20px;
-            left: 40px;
-            font-size: 22px;
-            color: #1167B1; /* Changed from white to blue */
-            font-weight: 600;
-          
-        }
-        /* Blue box for appointment only */
-        .appointment-box {
-            position: absolute;
-            top: 55px; /* Positioned below the login heading */
-            left: 40px;
-            background-color: rgba(33, 150, 243, 0.8);
-            padding: 15px 20px;
-            border-radius: 10px;
-            text-align: left;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-        }
-
-        .appointment-info {
-            font-size: 14px;
-            color: white;
-        }
-
-        .appointment-link {
-            text-decoration: none;
-            color: inherit;
-            display: block;
-            cursor: pointer;
-        }
-
-        .appointment-link:hover .appointment-box {
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-            transform: translateY(-2px);
-            transition: all 0.2s ease;
-        }
