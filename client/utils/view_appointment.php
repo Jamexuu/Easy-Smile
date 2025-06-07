@@ -1,145 +1,202 @@
 <?php
-session_start();
-require_once 'Connection/db_connection.php';
+// --- Database connection setup ---
+$servername = "localhost";
+$username = "your_db_username";
+$password = "your_db_password";
+$dbname = "your_db_name";
 
-// Get appointment ID from URL
-$appointmentId = $_GET['id'] ?? null;
+// Create connection
+$conn = new mysqli($servername, $username, $password, $dbname);
 
-if (!$appointmentId) {
-    header("Location: schedule_appointment.php");
-    exit();
+// Check connection
+if ($conn->connect_error) {
+    die("Connection failed: " . $conn->connect_error);
 }
 
-// Fetch appointment data from database
-try {
-    $conn = create_connection();
-    $stmt = $conn->prepare("SELECT * FROM appointment_tbl WHERE appointment_id = ?");
-    $stmt->bind_param("i", $appointmentId);
-    $stmt->execute();
-    $result = $stmt->get_result();
-    
-    if ($result->num_rows === 0) {
-        echo "<script>alert('Appointment not found.'); window.location.href='schedule_appointment.php';</script>";
-        exit();
-    }
-    
-    $appointment = $result->fetch_assoc();
-    $stmt->close();
-    $conn->close();
-    
-    // Format the appointment date
-    $appointmentDate = date('F j, l', strtotime($appointment['appointment_date']));
-    $appointmentTime = date('g:i A', strtotime($appointment['appointment_time']));
-    
-} catch (Exception $e) {
-    echo "<script>alert('Database error: " . $e->getMessage() . "'); window.location.href='schedule_appointment.php';</script>";
-    exit();
+// --- Fetch user data (replace with your actual logic, e.g., session user id) ---
+$user_id = 1; // Example user id, replace as needed
+$sql = "SELECT first_name, last_name, middle_name, birth_date, gender, email, phone FROM users WHERE id = $user_id";
+$result = $conn->query($sql);
+
+if ($result && $result->num_rows > 0) {
+    $row = $result->fetch_assoc();
+    $firstName = htmlspecialchars($row['first_name']);
+    $lastName = htmlspecialchars($row['last_name']);
+    $middleName = htmlspecialchars($row['middle_name']);
+    $birthDate = htmlspecialchars($row['birth_date']);
+    $gender = htmlspecialchars($row['gender']);
+    $email = htmlspecialchars($row['email']);
+    $phone = htmlspecialchars($row['phone']);
+} else {
+    $firstName = $lastName = $middleName = $birthDate = $gender = $email = $phone = "";
 }
+
+$conn->close();
 ?>
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>View Appointment - Easy Smile Dental Clinic</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="../css/style.css">
-    <link rel="stylesheet" href="../css/view_appointment.css">
+    <title>EasySmile Dashboard</title>
+    <style>
+        body {
+            background: #fff;
+            margin: 0;
+            font-family: Segoe UI, sans-serif;
+        }
+        .logo {
+            text-align: center;
+            margin-top: 30px;
+            margin-bottom: 10px;
+        }
+        .logo img {
+            height: 70px;
+        }
+        .logo-text {
+            color: #1976d2;
+            font-size: 1.1em;
+            margin-top: 2px;
+        }
+        .container {
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            margin-top: 40px;
+        }
+        .sidebar {
+            background: #f2f2f2;
+            width: 200px;
+            border-radius: 4px;
+            padding: 30px 0;
+            margin-right: 50px;
+        }
+        .sidebar ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        .sidebar ul li {
+            margin: 20px 0;
+            padding-left: 30px;
+        }
+        .sidebar ul li a {
+            text-decoration: none;
+            color: #222;
+            font-weight: bold;
+        }
+        .sidebar ul li.active a {
+            color: #222;
+            text-decoration: underline;
+        }
+        .main-content {
+            background: #ededed;
+            border-radius: 4px;
+            padding: 40px 60px 40px 40px;
+            min-width: 480px;
+            min-height: 420px;
+        }
+        h1 {
+            font-size: 2em;
+            margin-bottom: 0;
+        }
+        .subtitle {
+            font-size: 1em;
+            color: #444;
+            margin-bottom: 30px;
+            font-weight: bold;
+        }
+        form {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px 30px;
+        }
+        label {
+            display: block;
+            margin-bottom: 6px;
+            font-size: 0.97em;
+            color: #333;
+        }
+        input[type="text"], input[type="email"], input[type="date"] {
+            width: 95%;
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 3px;
+            font-size: 1em;
+            background: #f9f9f9;
+        }
+        input[readonly] {
+            background: #f3f3f3;
+            color: #444;
+            cursor: not-allowed;
+        }
+        .full-width {
+            grid-column: 1 / 3;
+        }
+        .logout-btn {
+            margin-top: 30px;
+            width: 180px;
+            padding: 10px 0;
+            background: #1976d2;
+            color: #fff;
+            border: none;
+            border-radius: 3px;
+            font-size: 1em;
+            cursor: pointer;
+            transition: background 0.2s;
+            float: right;
+        }
+        .logout-btn:hover {
+            background: #125ea7;
+        }
+    </style>
 </head>
 <body>
-    <header class="top-header">
-        <?php include '../components/header.html'; ?>
-    </header>
-
-    <div class="appointment-view-container">
-        <h1>Upcoming Appointment</h1>
-        
-        <div class="appointment-date"><?= htmlspecialchars($appointmentDate) ?></div>
-        <div class="appointment-time">Time: <?= htmlspecialchars($appointmentTime) ?></div>
-        
-        <div class="appointment-details">
-            <div class="detail-row">
-                <div class="detail-label">First Name:</div>
-                <div class="detail-value"><?= htmlspecialchars($appointment['ptnt_fname']) ?></div>
-            </div>
-            
-            <div class="detail-row">
-                <div class="detail-label">Middle Name:</div>
-                <div class="detail-value"><?= htmlspecialchars($appointment['ptnt_mname'] ?? 'N/A') ?></div>
-            </div>
-            
-            <div class="detail-row">
-                <div class="detail-label">Last Name:</div>
-                <div class="detail-value"><?= htmlspecialchars($appointment['ptnt_lname']) ?></div>
-            </div>
-            
-            <div class="detail-row">
-                <div class="detail-label">Birth Date:</div>
-                <div class="detail-value"><?= htmlspecialchars(date('m/d/Y', strtotime($appointment['ptnt_birth_date']))) ?></div>
-            </div>
-            
-            <div class="detail-row">
-                <div class="detail-label">Gender:</div>
-                <div class="detail-value"><?= htmlspecialchars(ucfirst($appointment['ptnt_gender'] ?? 'Not specified')) ?></div>
-            </div>
-            
-            <div class="detail-row">
-                <div class="detail-label">Purpose of Visit:</div>
-                <div class="detail-value"><?= htmlspecialchars(ucfirst($appointment['purps_vst'])) ?></div>
-            </div>
-            
-            <?php if (!empty($appointment['additional_notes'])): ?>
-            <div class="detail-row">
-                <div class="detail-label">Additional Notes:</div>
-                <div class="detail-value"><?= htmlspecialchars($appointment['additional_notes']) ?></div>
-            </div>
-            <?php endif; ?>
-            
-            <div class="detail-row">
-                <div class="detail-label">Status:</div>
-                <div class="detail-value status-<?= strtolower($appointment['status']) ?>">
-                    <?= htmlspecialchars(ucfirst($appointment['status'])) ?>
+    <div class="logo">
+        <img src="client/static/images/EasySmileLogo.png" alt="EasySmile Logo"> 
+        <!-- need to be replaced with the actual path -->
+    </div>
+    <div class="container">
+        <nav class="sidebar">
+            <ul>
+                <li class="active"><a href="#">Dashboard</a></li>
+                <li><a href="#">Appointment</a></li>
+            </ul>
+        </nav>
+        <div class="main-content">
+            <h1>Dashboard</h1>
+            <div class="subtitle">Account Information</div>
+            <form>
+                <div>
+                    <label for="firstName">First Name</label>
+                    <input type="text" id="firstName" name="firstName" value="<?php echo $firstName; ?>" readonly>
                 </div>
-            </div>
-        </div>
-        
-        <?php if ($appointment['status'] === 'pending'): ?>
-        <button class="cancel-button" onclick="cancelAppointment(<?= $appointment['appointment_id'] ?>)">
-            Cancel Appointment
-        </button>
-        <?php endif; ?>
-        
-        <div class="action-buttons">
-            <a href="../../index.php" class="home-btn">← Back to Home</a>
+                <div>
+                    <label for="lastName">Last Name</label>
+                    <input type="text" id="lastName" name="lastName" value="<?php echo $lastName; ?>" readonly>
+                </div>
+                <div>
+                    <label for="middleName">Middle Name <span style="color: #888; font-size: 0.9em;">(optional)</span></label>
+                    <input type="text" id="middleName" name="middleName" value="<?php echo $middleName; ?>" readonly>
+                </div>
+                <div>
+                    <label for="birthDate">Birth Date</label>
+                    <input type="text" id="birthDate" name="birthDate" value="<?php echo $birthDate; ?>" readonly>
+                </div>
+                <div class="full-width">
+                    <label for="gender">Gender <span style="color: #888; font-size: 0.9em;">(optional)</span></label>
+                    <input type="text" id="gender" name="gender" value="<?php echo $gender; ?>" readonly>
+                </div>
+                <div class="full-width">
+                    <label for="email">Email</label>
+                    <input type="email" id="email" name="email" value="<?php echo $email; ?>" readonly>
+                </div>
+                <div class="full-width">
+                    <label for="phone">Phone Number</label>
+                    <input type="text" id="phone" name="phone" value="<?php echo $phone; ?>" readonly>
+                </div>
+            </form>
+            <button class="logout-btn">Logout</button>
         </div>
     </div>
-
-    <footer class="top-header">
-        <?php include '../components/footer.html'; ?>
-    </footer>
-
-    <script>
-    function cancelAppointment(appointmentId) {
-        if (confirm('Are you sure you want to cancel this appointment?')) {
-            // Create a form to submit the cancellation
-            const form = document.createElement('form');
-            form.method = 'POST';
-            form.action = 'DAO/cancel_appointment.php';
-            
-            const input = document.createElement('input');
-            input.type = 'hidden';
-            input.name = 'appointment_id';
-            input.value = appointmentId;
-            
-            form.appendChild(input);
-            document.body.appendChild(form);
-            form.submit();
-        }
-    }
-    </script>
 </body>
 </html>
