@@ -21,6 +21,13 @@ flex: 1;
 max-width: 600px;
 }
 
+.our-dentist-age {
+font-size: 18px;
+margin: 0 0 10px 0;
+font-weight: 400;
+color: white;
+}
+
 .our-dentist-heading {
 font-size: 48px;
 font-weight: 700;
