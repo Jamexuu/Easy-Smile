@@ -1,0 +1,113 @@
+<!-- Success popup component -->
+<div id="success-popup" class="success-popup" style="display: flex;">
+    <div class="success-popup-content">
+        <div class="success-icon">✓</div>
+        <div class="success-message">Account Created Successfully!</div>
+        <p>You can now log in with your credentials.</p>
+        <button class="success-button" onclick="closeSuccessPopup()">OK</button>
+    </div>
+</div>
+
+<style>
+    /* Success popup styles */
+    .success-popup {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5);
+        z-index: 10000;
+        justify-content: center;
+        align-items: center;
+    }
+    
+    .success-popup-content {
+        background-color: white;
+        padding: 30px;
+        border-radius: 10px;
+        text-align: center;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        max-width: 400px;
+        width: 90%;
+        animation: slideIn 0.3s ease-out;
+    }
+    
+    @keyframes slideIn {
+        from {
+            transform: translateY(-50px);
+            opacity: 0;
+        }
+        to {
+            transform: translateY(0);
+            opacity: 1;
+        }
+    }
+    
+    .success-icon {
+        color: #28a745;
+        font-size: 48px;
+        margin-bottom: 15px;
+        font-weight: bold;
+    }
+    
+    .success-message {
+        color: #333;
+        font-size: 18px;
+        font-weight: 500;
+        margin-bottom: 15px;
+    }
+    
+    .success-popup-content p {
+        color: #666;
+        margin-bottom: 20px;
+        font-size: 14px;
+    }
+    
+    .success-button {
+        background-color: #192f8f;
+        color: white;
+        border: none;
+        padding: 12px 25px;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 16px;
+        font-weight: 500;
+        transition: all 0.3s ease;
+        min-width: 80px;
+    }
+    
+    .success-button:hover {
+        background-color: #217fc5;
+        transform: translateY(-1px);
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    }
+</style>
+
+<script>
+    function closeSuccessPopup() {
+        const popup = document.getElementById('success-popup');
+        if (popup) {
+            popup.style.display = 'none';
+        }
+        
+        // Clean up URL parameters
+        const newUrl = window.location.origin + window.location.pathname;
+        window.history.replaceState({}, document.title, newUrl);
+    }
+
+    // Close popup when clicking outside the content
+    document.addEventListener('click', function(e) {
+        const popup = document.getElementById('success-popup');
+        if (popup && e.target === popup) {
+            closeSuccessPopup();
+        }
+    });
+
+    // Close popup with Escape key
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            closeSuccessPopup();
+        }
+    });
+</script>

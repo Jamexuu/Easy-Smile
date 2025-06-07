@@ -113,6 +113,20 @@ select {
     background-color: #0d8aed;
 }
 
+.error-messages {
+    background-color: #f8d7da;
+    border: 1px solid #f5c6cb;
+    color: #721c24;
+    padding: 15px;
+    border-radius: 5px;
+    margin-bottom: 20px;
+}
+
+.error {
+    margin: 0;
+    padding: 2px 0;
+}
+
 /* Responsive adjustments */
 @media (max-width: 600px) {
     .form-row {
