@@ -1,8 +1,11 @@
+package main;
+
 import java.awt.*;
 import javax.swing.*;
 
 import DataBase.DBConnector;
 import Frames.LoginFrame;
+import Frames.homepage;
 import components.LogoPanel;
 import components.WindowManager;
 
@@ -34,13 +37,29 @@ public class Main extends JFrame {
         WindowManager.setupLoginWindow(this);
     }
 
-    public static void main(String[] args) {
-    // Test database connection first
-    if (DBConnector.testConnection()) {
-        System.out.println("The database connection is successful!");
-        SwingUtilities.invokeLater(() -> new Main().initialize());
-    } else {
-        System.err.println("Cannot start application - Database connection failed!");
+    // Method to navigate to homepage after successful login
+    public void navigateToHomepage() {
+        this.dispose(); // Close login window
+        SwingUtilities.invokeLater(() -> {
+            new homepage().home();
+        });
     }
-}
+
+    public static void main(String[] args) {
+        // Test database connection first
+        if (DBConnector.testConnection()) {
+            System.out.println("The database connection is successful!");
+            SwingUtilities.invokeLater(() -> new Main().initialize());
+        } else {
+            System.err.println("Cannot start application - Database connection failed!");
+            // Show error dialog and exit
+            SwingUtilities.invokeLater(() -> {
+                JOptionPane.showMessageDialog(null, 
+                    "Cannot connect to the database. Please check your database configuration.", 
+                    "Database Connection Error", 
+                    JOptionPane.ERROR_MESSAGE);
+                System.exit(1);
+            });
+        }
+    }
 }

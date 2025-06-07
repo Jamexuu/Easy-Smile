@@ -51,33 +51,35 @@ public class homepage extends JFrame{
                 accountLabel.setText(makeMenuLabel("Account Information", selectedMenu.equals("Account Information")).getText());
                 clinicLabel.setText(makeMenuLabel("Clinic Information", selectedMenu.equals("Clinic Information")).getText());
 
-            // Navigation logic
-            switch (menuText) {
-                case "Home":
-                    homepage homepageInfo = new homepage();
-                    homepageInfo.home();
-                    dispose();
-                    break;
-                case "Services Display":
-                    servicesDisplay servicesInfo = new servicesDisplay();
-                    servicesInfo.services();
-                    dispose();
-                    break;
-                case "Dentists Information":
-                    dentistsInformation dentistInfo = new dentistsInformation();
-                    dentistInfo.initialize();
-                    dispose();
-                    break;
-                case "Account Information":
-                    AccountManagement accountInfo = new AccountManagement();
-                    accountInfo.initialize();
-                    dispose();
-                    break;
-                case "Clinic Information":
-                    clinicInformationFrame clinicInfo = new clinicInformationFrame();
-                    clinicInfo.initialize();
-                    dispose();
-                    break;
+                // Navigation logic
+                switch (menuText) {
+                    case "Home":
+                        // Already on homepage, just refresh
+                        break;
+                    case "Services Display":
+                        dispose();
+                        SwingUtilities.invokeLater(() -> {
+                            new ServicesDisplay(); // Fixed: Changed to match actual class name
+                        });
+                        break;
+                    case "Dentists Information":
+                        dispose();
+                        SwingUtilities.invokeLater(() -> {
+                            new DentistsInformation().initialize(); // Make sure this class exists
+                        });
+                        break;
+                    case "Account Information":
+                        dispose();
+                        SwingUtilities.invokeLater(() -> {
+                            new AccountManagement().initialize(); // Make sure this class exists
+                        });
+                        break;
+                    case "Clinic Information":
+                        dispose();
+                        SwingUtilities.invokeLater(() -> {
+                            new clinicInformationFrame(); // Make sure this class exists
+                        });
+                        break;
                 }
             }
         };
@@ -110,16 +112,20 @@ public class homepage extends JFrame{
         logoImage.setIcon(icon);
         /* Buttons */
         JButton patientBtn = makeButton("PATIENT MANAGEMENT");
-        /*patientBtn.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-            }
-        });*/
+        patientBtn.addActionListener(e -> {
+            dispose(); 
+            SwingUtilities.invokeLater(() -> {
+                new PatientManagementFrame();
+            });
+        });
         JButton appointmentBtn = makeButton("APPOINTMENT MANAGEMENT");
         appointmentBtn.addActionListener(e -> {
-            appointmentManagement appointmentFrame = new appointmentManagement();
-            appointmentFrame.appointment();
-            dispose(); // Close the current Homepage window
+            dispose();
+            SwingUtilities.invokeLater(() -> {
+                AppointmentManagementFrame appointmentFrame = new AppointmentManagementFrame();
+                appointmentFrame.appointment();
+            });
+            
         });
         /* Main Content Panel (Logo + Main Buttons)*/
         JPanel mainContentPanel = new JPanel();
