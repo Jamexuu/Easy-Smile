@@ -38,6 +38,8 @@ public class AccountManagement extends JFrame {
     // Store account IDs for each row (for deletion)
     private List<Integer> accountIds;
 
+    private boolean isInitialized = false;
+
     public AccountManagement() {
         // Initialize DAO
         accountDAO = new AccountManagementDAO();
@@ -45,6 +47,16 @@ public class AccountManagement extends JFrame {
     }
 
     public void initialize() {
+        if (isInitialized) {
+            return;
+        }
+
+        isInitialized = true;
+
+        getContentPane().removeAll();
+
+        getContentPane().setBackground(Color.decode("#E1E3E5"));
+
         setupFrame();
         createComponents();
         loadData(); // Load data from database
