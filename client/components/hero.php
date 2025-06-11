@@ -53,6 +53,22 @@ if (session_status() === PHP_SESSION_NONE) {
 </section>
 
 <script>
+    document.addEventListener('click', function(e) {
+        if (e.target && e.target.id === 'toggle-icon') {
+            const passwordInput = document.getElementById('password-input');
+            const toggleIcon = document.getElementById('toggle-icon');
+            
+            if (passwordInput && toggleIcon) {
+                if (passwordInput.type === 'password') {
+                    passwordInput.type = 'text';
+                    toggleIcon.className = 'bi bi-eye-slash toggle-password';
+                } else {
+                    passwordInput.type = 'password';
+                    toggleIcon.className = 'bi bi-eye toggle-password';
+                }
+            }
+        }
+    });
     function showLoginRequired() {
         alert('You need to log in to book an appointment.');
         openLoginPopup();
