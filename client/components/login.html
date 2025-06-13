@@ -1,3 +1,5 @@
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+<link rel="stylesheet" href="client/css/login.css">
 <head>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Add this script to the head section to ensure it's loaded early -->
@@ -34,7 +36,9 @@ window.closeLoginPopup = function() {
     <div class="login-popup-content">
         <span class="login-label">Login</span>
         <span class="close-btn" onclick="closeLoginPopup()">&times;</span>
-        <div class="rectangle">Welcome to EasySmile Dental Clinic</div>
+        <div class="rectangle">
+            Welcome to EasySmile Dental Clinic 
+        </div>
 
         <!-- Error message container -->
         <div id="error-container"></div>
@@ -46,11 +50,9 @@ window.closeLoginPopup = function() {
             </div>
             <div>
                 <label>Password</label>
-                <div class="password-container">
-                    <input type="password" id="login-password" name="password" required>
-                    <span class="password-toggle" onclick="togglePasswordView()">
-                        <i class="far fa-eye"></i>
-                    </span>
+                <div class="password-input-container">
+                    <input type="password" name="password" id="password-input" required>
+                    <i class="bi bi-eye toggle-password" id="toggle-icon"></i>
                 </div>
             </div>
             <div style="margin-top:10px;">
