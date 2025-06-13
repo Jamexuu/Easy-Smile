@@ -7,7 +7,7 @@ body {
 }
 
 .register-container {
-    max-width: 500px;
+    max-width: 720px;
     margin: 30px auto;
     padding: 20px;
     background-color: #EEEEEE; /* Added explicit form background color */

@@ -7,6 +7,7 @@ session_start();
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     // Get and sanitize form data
     $firstName = trim($_POST['firstName']);
+    $middleName = trim($_POST['middleName']);
     $lastName = trim($_POST['lastName']);
     $birthDate = $_POST['birthDate'];
     $gender = $_POST['gender'] ?? null;

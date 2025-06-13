@@ -1,3 +1,35 @@
+<head>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Add this script to the head section to ensure it's loaded early -->
+    <script>
+// Define the function in the global scope (on the window object)
+window.togglePasswordView = function() {
+    console.log("Toggle password view called");
+    
+    const passwordField = document.getElementById('login-password');
+    const toggleBtn = document.querySelector('.password-toggle i');
+    
+    if (passwordField && toggleBtn) {
+        if (passwordField.type === 'password') {
+            passwordField.type = 'text';
+            toggleBtn.className = 'far fa-eye-slash';
+            console.log("Changed to text");
+        } else {
+            passwordField.type = 'password';
+            toggleBtn.className = 'far fa-eye';
+            console.log("Changed to password");
+        }
+    } else {
+        console.error("Password field or toggle button not found");
+    }
+};
+
+window.closeLoginPopup = function() {
+    document.getElementById('login-popup').style.display = 'none';
+};
+    </script>
+</head>
+
 <div id="login-popup" class="login-popup-overlay" style="display:none;">
     <div class="login-popup-content">
         <span class="login-label">Login</span>
@@ -14,7 +46,12 @@
             </div>
             <div>
                 <label>Password</label>
-                <input type="password" name="password" required>
+                <div class="password-container">
+                    <input type="password" id="login-password" name="password" required>
+                    <span class="password-toggle" onclick="togglePasswordView()">
+                        <i class="far fa-eye"></i>
+                    </span>
+                </div>
             </div>
             <div style="margin-top:10px;">
                 <button type="submit">Login</button>
@@ -28,7 +65,37 @@
         </form>
     </div>
 </div>
+
 <style>
+
+        /* Add these CSS rules to make the password toggle visible and clickable */
+    .password-container {
+        position: relative;
+        width: 100%;
+    }
+    
+    .password-toggle {
+        position: absolute;
+        right: 10px;
+        top: 50%;
+        transform: translateY(-50%);
+        cursor: pointer;
+        z-index: 10;
+        padding: 5px; /* Makes it easier to click */
+        user-select: none; /* Prevents text selection */
+    }
+    
+    /* Make sure email inputs are styled the same as password inputs */
+    .login-popup-content input[type="email"],
+    /*.login-popup-content input[type="text"],
+    .login-popup-content input[type="password"] {
+        width: 100%;
+        padding: 8px;
+        box-sizing: border-box;
+        border-radius: 3px;
+        border: 1px solid #ccc;
+    }*/
+
     body { 
         font-family: Arial, sans-serif; 
     }
@@ -75,14 +142,14 @@
         text-align: left; /* ensures label is left-aligned */
     }
 
-    .login-popup-content input[type="text"],
+    /*.login-popup-content input[type="text"],
     .login-popup-content input[type="password"] {
         width: 100%;
         padding: 8px;
         box-sizing: border-box;
         border-radius: 3px;
         border: 1px solid #ccc;
-    }
+    }*/
 
     .login-popup-content button[type="submit"] {
         width: 100%;
@@ -137,7 +204,18 @@
         justify-content: center;
         text-align: center;
     }
+    .login-popup-content input[type="password"] {
+        padding: 8px 40px 8px 8px; /* Add 40px right padding */
+    }
 
+    .password-toggle {
+    padding: 5px; /* Makes it easier to click */
+    user-select: none; /* Prevents text selection */
+}
+
+    .password-toggle:hover {
+        color: #333;
+    }
     .forgot-link, .create-account-link {
         color: #192f8f;
         text-decoration: none;
@@ -149,6 +227,14 @@
     }
 </style>
 <script>
+    // Define showError function first so it's available to other functions
+    function showError(message) {
+        const errorContainer = document.getElementById('error-container');
+        if (errorContainer) {
+            errorContainer.innerHTML = `<div class="error">${message}</div>`;
+        }
+    }
+
     document.addEventListener('DOMContentLoaded', function() {
         const loginForm = document.getElementById('login-form');
         if (loginForm) {
@@ -185,12 +271,5 @@
                 });
             });
         }
-    });    
-
-    function showError(message) {
-        const errorContainer = document.getElementById('error-container');
-        if (errorContainer) {
-            errorContainer.innerHTML = `<div class="error">${message}</div>`;
-        }
-    }
+    });
 </script>

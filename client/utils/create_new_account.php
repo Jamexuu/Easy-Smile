@@ -41,32 +41,36 @@
             <div class="form-row">
                 <div class="form-group">
                     <label for="firstName">First Name</label>
-                    <input type="text" id="firstName" name="firstName" placeholder="Enter your name" 
+                    <input type="text" id="firstName" name="firstName" placeholder="Enter first name" 
                            value="<?= htmlspecialchars($formData['firstName'] ?? '') ?>" required>
+                </div>
+                 <div class="form-group">
+                    <label for="lastName">Middle Name</label>
+                    <input type="text" id="middlename" name="middlename" placeholder="Enter middle name" 
+                           value="<?= htmlspecialchars($formData['middleName'] ?? '') ?>" required>
                 </div>
                 <div class="form-group">
                     <label for="lastName">Last Name</label>
-                    <input type="text" id="lastName" name="lastName" placeholder="Enter your name" 
+                    <input type="text" id="lastName" name="lastName" placeholder="Enter middle name" 
                            value="<?= htmlspecialchars($formData['lastName'] ?? '') ?>" required>
                 </div>
             </div>
-            
-            <div class="form-group">
-                <label for="birthDate">Birth Date</label>
-                <input type="text" id="birthDate" name="birthDate" placeholder="MM/DD/YYYY" 
-                       value="<?= htmlspecialchars($formData['birthDate'] ?? '') ?>" required>
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="birthDate">Birth Date</label>
+                    <input type="date" id="birthDate" name="birthDate"
+                        value="<?= htmlspecialchars($formData['birthDate'] ?? '') ?>" required>
+                </div>
+                <div class="form-group">
+                    <label for="gender">Gender <span class="optional">(optional)</span></label>
+                    <select id="gender" name="gender">
+                        <option value="">-- Select gender --</option>
+                        <option value="male" <?= ($formData['gender'] ?? '') === 'male' ? 'selected' : '' ?>>Male</option>
+                        <option value="female" <?= ($formData['gender'] ?? '') === 'female' ? 'selected' : '' ?>>Female</option>
+                        <option value="other" <?= ($formData['gender'] ?? '') === 'other' ? 'selected' : '' ?>>Other</option>
+                    </select>
+                </div>
             </div>
-            
-            <div class="form-group">
-                <label for="gender">Gender <span class="optional">(optional)</span></label>
-                <select id="gender" name="gender">
-                    <option value="">-- Select gender --</option>
-                    <option value="male" <?= ($formData['gender'] ?? '') === 'male' ? 'selected' : '' ?>>Male</option>
-                    <option value="female" <?= ($formData['gender'] ?? '') === 'female' ? 'selected' : '' ?>>Female</option>
-                    <option value="other" <?= ($formData['gender'] ?? '') === 'other' ? 'selected' : '' ?>>Other</option>
-                </select>
-            </div>
-            
             <div class="form-group">
                 <label for="phone">Phone Number</label>
                 <input type="tel" id="phone" name="phone" placeholder="Enter your phone number" 
@@ -81,14 +85,19 @@
             
             <div class="form-group">
                 <label for="password">Password</label>
-                <input type="password" id="password" name="password" placeholder="Enter your password" required>
+                <div class="password-container">
+                    <input type="password" id="password" name="password" placeholder="Enter your password" required>
+                    <span class="password-toggle" onclick="togglePassword('password', this)">
+                        <i class="far fa-eye"></i>
+                    </span>
+                </div>
             </div>
             
             <div class="form-group password-group">
                 <label for="confirmPassword">Confirm password</label>
                 <div class="password-container">
                     <input type="password" id="confirmPassword" name="confirmPassword" placeholder="Retype your password" required>
-                    <span class="password-toggle" onclick="togglePassword()">
+                    <span class="password-toggle" onclick="togglePassword('confirmPassword', this)">
                         <i class="far fa-eye"></i>
                     </span>
                 </div>
@@ -97,11 +106,11 @@
             <button type="submit" class="register-button">Register</button>
         </form>
     </div>
-
+    
     <script>
-        function togglePassword() {
-            const passwordField = document.getElementById('confirmPassword');
-            const icon = document.querySelector('.password-toggle i');
+        function togglePassword(fieldId, toggleElem) {
+            const passwordField = document.getElementById(fieldId);
+            const icon = toggleElem.querySelector('i');
             
             if (passwordField.type === 'password') {
                 passwordField.type = 'text';
@@ -114,7 +123,7 @@
             }
         }
     </script>
-
+    
     <footer class="top-header">
         <?php include '../components/footer.html'; ?>
     </footer>
