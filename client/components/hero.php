@@ -1,20 +1,16 @@
 <?php
-// Only start session if not already started
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 ?>
-<!-- Hero Section -->
 <section class="hero">
     
     <?php if (isset($_SESSION['user_name'])): ?>
-        <!-- Show user info and logout when logged in -->
         <div class="user-info">
             <h2 class="login-heading">Hi, <?= ucwords(htmlspecialchars($_SESSION['user_name'])) ?>!</h2>
             <a href="client/utils/logout.php" class="log-out-link">Log Out</a>
         </div>
         
-        <!-- Blue box with appointment (only show for logged in users) -->  
         <a href="view_appointment.php" class="appointment-link"></a>
         <div class="appointment-box">
             <div class="appointment-info">
@@ -52,69 +48,4 @@ if (session_status() === PHP_SESSION_NONE) {
 
 </section>
 
-<script>
-    document.addEventListener('click', function(e) {
-        if (e.target && e.target.id === 'toggle-icon') {
-            const passwordInput = document.getElementById('password-input');
-            const toggleIcon = document.getElementById('toggle-icon');
-            
-            if (passwordInput && toggleIcon) {
-                if (passwordInput.type === 'password') {
-                    passwordInput.type = 'text';
-                    toggleIcon.className = 'bi bi-eye-slash toggle-password';
-                } else {
-                    passwordInput.type = 'password';
-                    toggleIcon.className = 'bi bi-eye toggle-password';
-                }
-            }
-        }
-    });
-    function showLoginRequired() {
-        alert('You need to log in to book an appointment.');
-        openLoginPopup();
-        return false;
-    }
-
-    function openLoginPopup() {
-        <?php if (!isset($_SESSION['user_name'])): ?>
-            if (!document.getElementById('login-popup')) {
-                fetch('client/components/login.html')
-                    .then(response => {
-                        if (!response.ok) {
-                            throw new Error(`HTTP ${response.status}`);
-                        }
-                        return response.text();
-                    })
-                    .then(html => {
-                        document.getElementById('login-popup-container').innerHTML = html;
-                        document.getElementById('login-popup').style.display = 'flex';
-                    })
-                    .catch(error => {
-                        console.error('Error loading login form:', error);
-                        alert('Could not load login form. Please refresh the page.');
-                    });
-            } else {
-                document.getElementById('login-popup').style.display = 'flex';
-            }
-        <?php else: ?>
-            // Redirect to appointments or dashboard
-            alert('You are already logged in as <?= htmlspecialchars($_SESSION['user_name']) ?>');
-        <?php endif; ?>
-    }
-    
-    function closeLoginPopup() {
-        if (document.getElementById('login-popup')) {
-            document.getElementById('login-popup').style.display = 'none';
-        }
-    }
-    
-    window.onclick = function(event) {
-        var popup = document.getElementById('login-popup');
-        if (popup && event.target === popup) {
-            popup.style.display = "none";
-        }
-    }
-
-    console.log('Current page location:', window.location.pathname);
-    console.log('Trying to fetch from: client/components/login.html');
-</script>
+<script src="client/js/login.js"></script>
