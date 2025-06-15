@@ -148,3 +148,9 @@ SELECT AccountID, InternalID, FirstName, MiddleName, LastName, BirthDate, Gender
 
 -- Appointment Table
 SELECT AppointmentID, InternalID, PatientID, ScheduledBy, ServiceID, AppointmentDate, AppointmentTime, AppointmentDateTime, created_at, updated_at FROM AppointmentTbl;
+
+ALTER TABLE table_name
+MODIFY COLUMN MiddleName VARCHAR(100) NULL;
+
+ALTER TABLE PatientTbl
+MODIFY COLUMN Gender ENUM('Male', 'Female', 'Other') NULL;
