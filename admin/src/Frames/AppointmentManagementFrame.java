@@ -9,6 +9,7 @@ import java.awt.event.ActionEvent;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.EventObject;
+import Frames.CalendarPanel;
 
 import DAO.AppointmentDAO;
 import DAO.AppointmentDAO.Appointment;
@@ -161,13 +162,11 @@ public class AppointmentManagementFrame extends JFrame {
         JPanel btnPanel = new JPanel();
         btnPanel.setOpaque(false);
         btnPanel.setLayout(new BoxLayout(btnPanel, BoxLayout.X_AXIS));
-        
-        JButton calendarBtn = createStyledButton("View Calendar");
+    
         JButton homeBtn = createStyledButton("Back to Home");
         
         homeBtn.addActionListener(this::goBackToHome);
         
-        btnPanel.add(calendarBtn);
         btnPanel.add(Box.createRigidArea(new Dimension(10, 0)));
         btnPanel.add(homeBtn);
         
@@ -213,51 +212,55 @@ public class AppointmentManagementFrame extends JFrame {
     
     private JPanel createTabsPanel() {
         JTabbedPane appointmentTabs = new JTabbedPane();
-        
+
         // Create table models - Updated column names to match actual data
         String[] appointmentColumns = {"Appointment ID", "Patient ID", "Service ID", "Date", "Time", "Scheduled By", "Actions"};
-        
+
         upcomingModel = new DefaultTableModel(appointmentColumns, 0) {
             @Override
             public boolean isCellEditable(int row, int column) {
                 return column == 6; // Actions only
             }
         };
-        
+
         completedModel = new DefaultTableModel(appointmentColumns, 0) {
             @Override
             public boolean isCellEditable(int row, int column) {
                 return column == 6; // Actions only
             }
         };
-        
+
         canceledModel = new DefaultTableModel(appointmentColumns, 0) {
             @Override
             public boolean isCellEditable(int row, int column) {
                 return column == 6; // Actions only
             }
         };
-        
+
         // Create tables
         upcomingTable = createTable(upcomingModel);
         completedTable = createTable(completedModel);
         canceledTable = createTable(canceledModel);
-        
+
         // Set up renderers and editors
         setupTableActionsColumn(upcomingTable, 6);
         setupTableActionsColumn(completedTable, 6);
         setupTableActionsColumn(canceledTable, 6);
-        
+
         // Add tables to tabs
         appointmentTabs.addTab("ALL APPOINTMENTS", new JScrollPane(upcomingTable));
         appointmentTabs.addTab("COMPLETED", new JScrollPane(completedTable));
         appointmentTabs.addTab("CANCELED", new JScrollPane(canceledTable));
-        
+
+        // --- Add the Calendar tab here ---
+        CalendarPanel calendarPanel = new CalendarPanel();
+        appointmentTabs.addTab("CALENDAR", calendarPanel);
+
         JPanel tabsPanel = new JPanel(new BorderLayout());
         tabsPanel.setOpaque(false);
         tabsPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 5));
         tabsPanel.add(appointmentTabs, BorderLayout.CENTER);
-        
+
         return tabsPanel;
     }
     

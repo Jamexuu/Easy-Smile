@@ -7,7 +7,7 @@ import java.awt.event.*;
 import DAO.ClinicDAO;
 import DAO.ClinicDAO.ClinicInfo;
 
-public class clinicInformationFrame extends JFrame {
+public class ClinicInformationFrame extends JFrame {
     // Constants
     private static final Font BTN_FONT = new Font("Segoe UI", Font.BOLD, 14);
     private static final Font MAIN_FONT = new Font("Segoe UI", Font.BOLD, 20);
@@ -29,7 +29,7 @@ public class clinicInformationFrame extends JFrame {
 
     private boolean isInitialized = false;
 
-    public clinicInformationFrame() {
+    public ClinicInformationFrame() {
         clinicDAO = new ClinicDAO();
         initialize();
         loadClinicData();
@@ -489,7 +489,7 @@ public class clinicInformationFrame extends JFrame {
 
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {
-            new clinicInformationFrame();
+            new ClinicInformationFrame();
         });
     }
 }

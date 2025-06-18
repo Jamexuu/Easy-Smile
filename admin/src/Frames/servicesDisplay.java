@@ -678,7 +678,7 @@ public class ServicesDisplay extends JFrame {
             case "Clinic Information":
                 dispose();
                 SwingUtilities.invokeLater(() -> {
-                    new clinicInformationFrame();
+                    new ClinicInformationFrame();
                 });
                 break;
         }

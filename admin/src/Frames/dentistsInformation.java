@@ -782,7 +782,7 @@ public class DentistsInformation extends JFrame {
             case "Clinic Information":
                 dispose();
                 SwingUtilities.invokeLater(() -> {
-                    new clinicInformationFrame();
+                    new ClinicInformationFrame();
                 });
                 break;
         }
