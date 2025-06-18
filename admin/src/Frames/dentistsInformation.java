@@ -11,7 +11,7 @@ import java.util.ArrayList;
 import DAO.DentistDAO;
 import DAO.DentistDAO.Dentist;
 
-public class dentistsInformation extends JFrame {
+public class DentistsInformation extends JFrame {
     // Constants
     private static final Font BTN_FONT = new Font("Segoe UI", Font.BOLD, 14);
     private static final Font MAIN_FONT = new Font("Segoe UI", Font.BOLD, 20);
@@ -782,7 +782,7 @@ public class dentistsInformation extends JFrame {
             case "Clinic Information":
                 dispose();
                 SwingUtilities.invokeLater(() -> {
-                    new clinicInformationFrame();
+                    new ClinicInformationFrame();
                 });
                 break;
         }
@@ -790,7 +790,7 @@ public class dentistsInformation extends JFrame {
 
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {
-            new dentistsInformation();
+            new DentistsInformation();
         });
     }
 }
