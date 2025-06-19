@@ -128,105 +128,113 @@ public class ClinicInformationFrame extends JFrame {
     }
     
     private JPanel createMainContentPanel() {
+        // Main panel with BorderLayout
+        JPanel mainPanel = new JPanel(new BorderLayout());
+        mainPanel.setOpaque(false);
+        
+        // Logo at the top - REDUCE HEIGHT to move form up
+        JPanel logoPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
+        logoPanel.setOpaque(false);
+        
         JLabel logoImage = new JLabel();
         java.net.URL logoUrl = getClass().getResource("/images/smalllogonotext.png");
         if (logoUrl != null) {
             ImageIcon icon = new ImageIcon(logoUrl);
-            icon = new ImageIcon(icon.getImage().getScaledInstance(250, 90, Image.SCALE_SMOOTH));
+            icon = new ImageIcon(icon.getImage().getScaledInstance(250, 70, Image.SCALE_SMOOTH)); // Smaller height
             logoImage.setIcon(icon);
         } else {
             logoImage.setText("Logo");
         }
-
-        JPanel mainContentPanel = new JPanel();
-        mainContentPanel.setLayout(new BoxLayout(mainContentPanel, BoxLayout.Y_AXIS));
-        mainContentPanel.setOpaque(false);
-        mainContentPanel.add(logoImage);
-        mainContentPanel.add(Box.createRigidArea(new Dimension(1, 20)));
-        mainContentPanel.add(createContentPanel());
-        mainContentPanel.add(Box.createVerticalGlue());
-        mainContentPanel.setBorder(BorderFactory.createEmptyBorder(20, 0, 20, 0));
-        logoImage.setAlignmentX(CENTER_ALIGNMENT);
         
-        return mainContentPanel;
+        logoPanel.add(logoImage);
+        // Add less padding to logo panel
+        logoPanel.setBorder(BorderFactory.createEmptyBorder(5, 0, 0, 0)); // Reduced top padding
+        mainPanel.add(logoPanel, BorderLayout.NORTH);
+        
+        // Center panel with the form
+        JPanel centerPanel = new JPanel(new GridBagLayout());
+        centerPanel.setOpaque(false);
+        
+        // Create the form
+        JPanel formPanel = createFormPanel();
+        
+        // Add the form to the center panel using GridBagLayout for centering
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        gbc.weightx = 1.0;
+        gbc.weighty = 1.0;
+        gbc.anchor = GridBagConstraints.NORTH; // CHANGED: Anchor to NORTH instead of CENTER
+        gbc.insets = new Insets(30, 0, 0, 0); // ADDED: Negative top inset to push upwards
+        centerPanel.add(formPanel, gbc);
+        
+        mainPanel.add(centerPanel, BorderLayout.CENTER);
+        
+        // Add bottom panel with empty space to push content up
+        JPanel bottomPanel = new JPanel();
+        bottomPanel.setPreferredSize(new Dimension(1, 100)); // Add space at bottom
+        bottomPanel.setOpaque(false);
+        mainPanel.add(bottomPanel, BorderLayout.SOUTH);
+        
+        return mainPanel;
     }
-    
-    private JPanel createContentPanel() {
-        JPanel recordPanel = new JPanel(new BorderLayout());
-        recordPanel.setBackground(SIDEBAR_COLOR);
-        recordPanel.setPreferredSize(new Dimension(500, 600));
-        recordPanel.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createMatteBorder(0, 2, 0, 0, Color.WHITE),
-                BorderFactory.createEmptyBorder(15, 15, 15, 15)
-        ));
 
-        JLabel clinicInfoLabel = new JLabel("Clinic Information");
-        clinicInfoLabel.setFont(new Font("Segoe UI", Font.BOLD, 24));
-        clinicInfoLabel.setForeground(Color.decode("#192F8F"));
-
-        Box fieldsBox = Box.createVerticalBox();
-        fieldsBox.add(clinicInfoLabel);
-        fieldsBox.add(Box.createVerticalStrut(15));
+    private JPanel createFormPanel() {
+        // Form panel with light blue background
+        JPanel formPanel = new JPanel();
+        formPanel.setLayout(new BoxLayout(formPanel, BoxLayout.Y_AXIS));
+        formPanel.setBackground(Color.decode("#D0EFFF")); // Light blue color from ServicesDisplay
+        formPanel.setOpaque(true);
+        formPanel.setBorder(BorderFactory.createEmptyBorder(30, 40, 30, 40));
         
-        createInputFields(fieldsBox);
+        // Title
+        JLabel titleLabel = new JLabel("Clinic Information");
+        titleLabel.setFont(new Font("Segoe UI", Font.BOLD, 32));
+        titleLabel.setForeground(Color.decode("#192F8F"));
+        titleLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
         
-        recordPanel.add(fieldsBox, BorderLayout.CENTER);
-        recordPanel.add(createButtonPanel(), BorderLayout.SOUTH);
-
-        JPanel contentPanel = new JPanel(new BorderLayout());
-        contentPanel.setOpaque(false);
-        contentPanel.add(recordPanel, BorderLayout.CENTER);
-        contentPanel.setPreferredSize(new Dimension(500, 600));
+        formPanel.add(titleLabel);
+        formPanel.add(Box.createVerticalStrut(20));
         
-        return contentPanel;
-    }
-    
-    private void createInputFields(Box container) {
+        // Form fields
         String[] fieldLabels = {"Phone Number", "Email Address", "Location", "Facebook Link", "Instagram Link"};
-        
         for (String label : fieldLabels) {
-            JPanel fieldPanel = new JPanel();
-            fieldPanel.setLayout(new BoxLayout(fieldPanel, BoxLayout.Y_AXIS));
-            fieldPanel.setOpaque(false);
-
             JLabel fieldLabel = new JLabel(label);
-            fieldLabel.setFont(LABEL_FONT);
-            fieldLabel.setForeground(Color.decode("#192F8F"));
-
+            fieldLabel.setFont(new Font("Segoe UI", Font.BOLD, 18));
+            fieldLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+            
             JTextField textField = new JTextField();
-            textField.setFont(MAIN_FONT);
-            textField.setMaximumSize(new Dimension(1000, 35));
-            textField.setBackground(Color.WHITE);
-            textField.setBorder(BorderFactory.createLineBorder(Color.decode("#C0C0C0")));
-            textField.setEditable(false);
-
+            textField.setMaximumSize(new Dimension(380, 36));
+            textField.setPreferredSize(new Dimension(380, 36));
+            textField.setFont(new Font("Segoe UI", Font.PLAIN, 16));
+            textField.setAlignmentX(Component.LEFT_ALIGNMENT);
+            
             fieldInputs.put(label, textField);
-
-            fieldPanel.add(fieldLabel);
-            fieldPanel.add(textField);
-            container.add(fieldPanel);
-            container.add(Box.createVerticalStrut(8));
+            formPanel.add(fieldLabel);
+            formPanel.add(Box.createVerticalStrut(6));
+            formPanel.add(textField);
+            formPanel.add(Box.createVerticalStrut(18));
         }
-    }
-    
-    private JPanel createButtonPanel() {
-        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 15, 50));
+        
+        // Edit button positioned right after the last field (moved up)
+        formPanel.add(Box.createVerticalStrut(10)); // Just a bit of spacing
+        
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
         buttonPanel.setOpaque(false);
         
         actionBtn = new JButton("Edit");
-        actionBtn.setFont(BTN_FONT);
-        actionBtn.setBackground(BLUE_COLOR);
+        actionBtn.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        actionBtn.setBackground(Color.decode("#1167B1"));
         actionBtn.setForeground(Color.WHITE);
-        actionBtn.setOpaque(true);
-        actionBtn.setBorderPainted(false);
-        actionBtn.setFocusPainted(false);
-        actionBtn.setPreferredSize(new Dimension(140, 36));
+        actionBtn.setPreferredSize(new Dimension(120, 40));
         actionBtn.addActionListener(this::handleActionButton);
         
         buttonPanel.add(actionBtn);
-        return buttonPanel;
+        formPanel.add(buttonPanel);
+        
+        return formPanel;
     }
-
+    
     // Helper to create menu label with or without underline
     private JLabel makeMenuLabel(String text, boolean underline) {
         String html = underline

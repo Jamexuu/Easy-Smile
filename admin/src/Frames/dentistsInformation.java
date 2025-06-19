@@ -35,10 +35,7 @@ public class DentistsInformation extends JFrame {
     private JButton actionBtn;
     private JButton prevBtn;
     private JButton nextBtn;
-    private JButton addBtn;
-    private JButton deleteBtn;
     private JButton selectImageBtn;
-    private JLabel imagePreview;
     private JLabel recordCounter;
     private JPanel sidebarPanel;
 
@@ -173,192 +170,215 @@ public class DentistsInformation extends JFrame {
         JPanel mainContentPanel = new JPanel();
         mainContentPanel.setLayout(new BoxLayout(mainContentPanel, BoxLayout.Y_AXIS));
         mainContentPanel.setOpaque(false);
+
+        mainContentPanel.add(Box.createVerticalStrut(10)); // Small top margin
         mainContentPanel.add(logoImage);
-        mainContentPanel.add(Box.createRigidArea(new Dimension(1, 20)));
+        mainContentPanel.add(Box.createVerticalStrut(15)); // Small gap between logo and form (adjust as needed)
         mainContentPanel.add(createContentPanel());
-        mainContentPanel.add(Box.createVerticalGlue());
-        mainContentPanel.setBorder(BorderFactory.createEmptyBorder(20, 0, 20, 0));
-        logoImage.setAlignmentX(CENTER_ALIGNMENT);
-        
+        // Do NOT add Box.createVerticalGlue() or large struts after this
+
+        logoImage.setAlignmentX(Component.CENTER_ALIGNMENT);
+
         return mainContentPanel;
     }
 
+    // 1. Add ScrollPane to ensure everything is visible
     private JPanel createContentPanel() {
-        JPanel mainContentPanel = new JPanel(new BorderLayout());
+        JPanel mainContentPanel = new JPanel(new GridBagLayout());
         mainContentPanel.setOpaque(false);
-        
-        // Left side - Image preview
-        JPanel imagePanel = createImagePanel();
-        
-        // Right side - Form
-        JPanel formPanel = createFormPanel();
-        
-        mainContentPanel.add(imagePanel, BorderLayout.WEST);
-        mainContentPanel.add(formPanel, BorderLayout.CENTER);
-        
-        return mainContentPanel;
-    }
 
-    private JPanel createImagePanel() {
-        JPanel imageContainer = new JPanel(new BorderLayout());
-        imageContainer.setOpaque(false);
-        imageContainer.setPreferredSize(new Dimension(300, 600));
+        JPanel coloredPanel = new JPanel();
+        coloredPanel.setBackground(Color.decode("#D0EFFF"));
+        coloredPanel.setLayout(new BoxLayout(coloredPanel, BoxLayout.Y_AXIS));
+        coloredPanel.setOpaque(true);
         
-        // Image preview
-        imagePreview = new JLabel("No Image Selected");
-        imagePreview.setPreferredSize(new Dimension(250, 300));
-        imagePreview.setBorder(BorderFactory.createLineBorder(Color.GRAY));
-        imagePreview.setHorizontalAlignment(SwingConstants.CENTER);
-        imagePreview.setVerticalAlignment(SwingConstants.CENTER);
-        imagePreview.setBackground(Color.WHITE);
-        imagePreview.setOpaque(true);
+        // Don't set preferred size - let it determine by content
+        // coloredPanel.setPreferredSize(new Dimension(650, 750));
         
-        // Select image button
-        selectImageBtn = new JButton("Select Image");
-        selectImageBtn.setFont(BTN_FONT);
-        selectImageBtn.addActionListener(this::selectImage);
+        coloredPanel.setBorder(BorderFactory.createEmptyBorder(30, 40, 80, 40)); // Much more bottom padding
+
+        // Add form panel to a scroll pane to ensure everything is visible
+        JScrollPane scrollPane = new JScrollPane(createFormPanel());
+        scrollPane.setBorder(null); // Remove border
+        scrollPane.setOpaque(false);
+        scrollPane.getViewport().setOpaque(false);
         
-        JPanel buttonPanel = new JPanel(new FlowLayout());
-        buttonPanel.setOpaque(false);
-        buttonPanel.add(selectImageBtn);
-        
-        imageContainer.add(imagePreview, BorderLayout.CENTER);
-        imageContainer.add(buttonPanel, BorderLayout.SOUTH);
-        imageContainer.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
-        
-        return imageContainer;
+        coloredPanel.add(scrollPane);
+
+        // GridBagConstraints to ensure full panel shows
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        gbc.weightx = 1.0;
+        gbc.weighty = 1.0; // Allow vertical expansion
+        gbc.fill = GridBagConstraints.BOTH; // Let it grow in both directions
+        gbc.anchor = GridBagConstraints.NORTH;
+
+        mainContentPanel.add(coloredPanel, gbc);
+        return mainContentPanel;
     }
 
     private JPanel createFormPanel() {
-        JPanel recordPanel = new JPanel(new BorderLayout());
-        recordPanel.setBackground(SIDEBAR_COLOR);
-        recordPanel.setPreferredSize(new Dimension(500, 600));
-        recordPanel.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createMatteBorder(0, 2, 0, 0, Color.WHITE),
-                BorderFactory.createEmptyBorder(15, 15, 15, 15)
-        ));
-
+        JPanel formPanel = new JPanel();
+        formPanel.setOpaque(false);
+        formPanel.setLayout(new BoxLayout(formPanel, BoxLayout.Y_AXIS));
+        formPanel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        
+        // Title header
         JLabel dentistsInfoLabel = new JLabel("Dentists Information");
-        dentistsInfoLabel.setFont(new Font("Segoe UI", Font.BOLD, 24));
+        dentistsInfoLabel.setFont(new Font("Segoe UI", Font.BOLD, 32));
         dentistsInfoLabel.setForeground(Color.decode("#192F8F"));
-
-        Box fieldsBox = Box.createVerticalBox();
-        fieldsBox.add(dentistsInfoLabel);
-        fieldsBox.add(Box.createVerticalStrut(10));
+        dentistsInfoLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        
+        formPanel.add(dentistsInfoLabel);
+        formPanel.add(Box.createVerticalStrut(16));
         
         // Record counter
-        recordCounter = new JLabel("Record 0 of 0");
-        recordCounter.setFont(LABEL_FONT);
+        recordCounter = new JLabel("No records");
+        recordCounter.setFont(new Font("Segoe UI", Font.PLAIN, 18));
         recordCounter.setForeground(Color.decode("#192F8F"));
-        fieldsBox.add(recordCounter);
-        fieldsBox.add(Box.createVerticalStrut(15));
+        recordCounter.setAlignmentX(Component.CENTER_ALIGNMENT);
+        formPanel.add(recordCounter);
+        formPanel.add(Box.createVerticalStrut(24));
         
-        createInputFields(fieldsBox);
+        // Container for form fields (fixed width)
+        JPanel fieldsContainer = new JPanel();
+        fieldsContainer.setLayout(new BoxLayout(fieldsContainer, BoxLayout.Y_AXIS));
+        fieldsContainer.setOpaque(false);
+        fieldsContainer.setAlignmentX(Component.CENTER_ALIGNMENT);
+        fieldsContainer.setMaximumSize(new Dimension(520, Integer.MAX_VALUE));
         
-        recordPanel.add(fieldsBox, BorderLayout.CENTER);
-        recordPanel.add(createButtonPanel(), BorderLayout.SOUTH);
-
-        return recordPanel;
-    }
-
-    private void createInputFields(Box container) {
+        // Add fields
         String[] fieldLabels = {"Title", "First Name", "Middle Name", "Last Name", "Age", "Bio"};
-        
         for (String label : fieldLabels) {
-            JPanel fieldPanel = new JPanel();
-            fieldPanel.setLayout(new BoxLayout(fieldPanel, BoxLayout.Y_AXIS));
-            fieldPanel.setOpaque(false);
-
             JLabel fieldLabel = new JLabel(label);
-            fieldLabel.setFont(LABEL_FONT);
-            fieldLabel.setForeground(Color.decode("#192F8F"));
-
+            fieldLabel.setFont(new Font("Segoe UI", Font.BOLD, 18));
+            fieldLabel.setAlignmentX(Component.LEFT_ALIGNMENT); // LEFT ALIGN the labels
+            
             if (label.equals("Bio")) {
-                JTextArea bioArea = new JTextArea(3, 20);
-                bioArea.setFont(MAIN_FONT);
+                JTextArea bioArea = new JTextArea(6, 1);
                 bioArea.setLineWrap(true);
                 bioArea.setWrapStyleWord(true);
-                bioArea.setBackground(Color.WHITE);
-                bioArea.setBorder(BorderFactory.createLineBorder(Color.decode("#C0C0C0")));
-                bioArea.setEditable(false);
-                bioArea.setPreferredSize(new Dimension(400, 80));
-                bioArea.setMaximumSize(new Dimension(1000, 120));
-                bioArea.setDocument(new JTextAreaLimit(500));
-
+                bioArea.setFont(new Font("Segoe UI", Font.PLAIN, 16));
+                bioArea.setAlignmentX(Component.LEFT_ALIGNMENT);
+                
+                // Set width to match other fields
+                Dimension bioSize = new Dimension(520, 110);
+                bioArea.setPreferredSize(bioSize);
+                bioArea.setMaximumSize(bioSize);
+                
+                // Word limit to 500
+                bioArea.setDocument(new PlainDocument() {
+                    @Override
+                    public void insertString(int offs, String str, AttributeSet a) throws BadLocationException {
+                        if (str == null) return;
+                        String currentText = getText(0, getLength());
+                        String newText = currentText.substring(0, offs) + str + currentText.substring(offs);
+                        int wordCount = newText.trim().isEmpty() ? 0 : newText.trim().split("\\s+").length;
+                        if (wordCount <= 500) {
+                            super.insertString(offs, str, a);
+                        } else {
+                            Toolkit.getDefaultToolkit().beep();
+                        }
+                    }
+                });
+                
                 fieldInputs.put(label, bioArea);
-                fieldPanel.add(fieldLabel);
-                fieldPanel.add(new JScrollPane(bioArea));
+                fieldsContainer.add(fieldLabel);
+                fieldsContainer.add(Box.createVerticalStrut(6));
+                fieldsContainer.add(bioArea);
             } else {
                 JTextField textField = new JTextField();
-                textField.setFont(MAIN_FONT);
-                textField.setBackground(Color.WHITE);
-                textField.setBorder(BorderFactory.createLineBorder(Color.decode("#C0C0C0")));
-                textField.setEditable(false);
-                textField.setMaximumSize(new Dimension(1000, 35));
-                textField.setPreferredSize(new Dimension(400, 35));
-
+                textField.setMaximumSize(new Dimension(520, 36));
+                textField.setPreferredSize(new Dimension(520, 36));
+                textField.setFont(new Font("Segoe UI", Font.PLAIN, 16));
+                textField.setAlignmentX(Component.LEFT_ALIGNMENT);
+                
                 fieldInputs.put(label, textField);
-                fieldPanel.add(fieldLabel);
-                fieldPanel.add(textField);
+                fieldsContainer.add(fieldLabel);
+                fieldsContainer.add(Box.createVerticalStrut(6));
+                fieldsContainer.add(textField);
             }
-            container.add(fieldPanel);
-            container.add(Box.createVerticalStrut(8));
+            fieldsContainer.add(Box.createVerticalStrut(18));
         }
+        
+        // Add select image button
+        JPanel imageBtnPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
+        imageBtnPanel.setOpaque(false);
+        imageBtnPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
+        imageBtnPanel.setMaximumSize(new Dimension(520, 38));
+        
+        selectImageBtn = new JButton("Select Image");
+        selectImageBtn.setFont(new Font("Segoe UI", Font.BOLD, 16));
+        selectImageBtn.setPreferredSize(new Dimension(160, 38));
+        selectImageBtn.addActionListener(this::selectImage);
+        
+        imageBtnPanel.add(selectImageBtn);
+        fieldsContainer.add(imageBtnPanel);
+        
+        // Add fields container to form
+        formPanel.add(fieldsContainer);
+        
+        // Add spacing before the Edit button
+        formPanel.add(Box.createVerticalStrut(30));
+        
+        // Edit button
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
+        buttonPanel.setOpaque(false);
+        buttonPanel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        
+        actionBtn = new JButton("Edit");
+        actionBtn.setFont(BTN_FONT);
+        actionBtn.setBackground(BLUE_COLOR);
+        actionBtn.setForeground(Color.WHITE);
+        actionBtn.setPreferredSize(new Dimension(150, 40));
+        actionBtn.addActionListener(this::handleActionButton);
+        
+        buttonPanel.add(actionBtn);
+        formPanel.add(buttonPanel);
+        
+        return formPanel;
+    }
+
+    // Helper method to add a form field with label on left
+    private void addFormField(JPanel panel, String labelText, int x, int y, int fieldWidth) {
+        JLabel label = new JLabel(labelText + ":");
+        label.setFont(new Font("Segoe UI", Font.BOLD, 18));
+        label.setHorizontalAlignment(SwingConstants.RIGHT);
+        
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.gridx = x;
+        gbc.gridy = y;
+        gbc.anchor = GridBagConstraints.EAST;
+        gbc.insets = new Insets(10, 10, 5, 10);
+        panel.add(label, gbc);
+        
+        JTextField textField = new JTextField();
+        textField.setFont(new Font("Segoe UI", Font.PLAIN, 16));
+        textField.setPreferredSize(new Dimension(fieldWidth, 36));
+        fieldInputs.put(labelText, textField);
+        
+        gbc = new GridBagConstraints();
+        gbc.gridx = x + 1;
+        gbc.gridy = y;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.insets = new Insets(10, 5, 5, 10);
+        panel.add(textField, gbc);
     }
 
     private JPanel createButtonPanel() {
-        JPanel buttonPanel = new JPanel(new BorderLayout());
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 0)); // Centered horizontally
         buttonPanel.setOpaque(false);
-        
-        // Navigation buttons
-        JPanel navPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        navPanel.setOpaque(false);
-        
-        prevBtn = new JButton("◀ Previous");
-        nextBtn = new JButton("Next ▶");
-        prevBtn.setFont(BTN_FONT);
-        nextBtn.setFont(BTN_FONT);
-        prevBtn.addActionListener(e -> navigateDentist(-1));
-        nextBtn.addActionListener(e -> navigateDentist(1));
-        
-        navPanel.add(prevBtn);
-        navPanel.add(nextBtn);
-        
-        // Action buttons
-        JPanel actionPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 5, 20));
-        actionPanel.setOpaque(false);
-        
-        addBtn = new JButton("Add New");
-        deleteBtn = new JButton("Delete");
+
         actionBtn = new JButton("Edit");
-        
-        addBtn.setFont(BTN_FONT);
-        deleteBtn.setFont(BTN_FONT);
         actionBtn.setFont(BTN_FONT);
-        
-        addBtn.setBackground(Color.decode("#28a745"));
-        deleteBtn.setBackground(Color.decode("#dc3545"));
         actionBtn.setBackground(BLUE_COLOR);
-        
-        addBtn.setForeground(Color.WHITE);
-        deleteBtn.setForeground(Color.WHITE);
         actionBtn.setForeground(Color.WHITE);
-        
-        addBtn.setPreferredSize(new Dimension(100, 36));
-        deleteBtn.setPreferredSize(new Dimension(100, 36));
-        actionBtn.setPreferredSize(new Dimension(140, 36));
-        
-        addBtn.addActionListener(this::addNewDentist);
-        deleteBtn.addActionListener(this::deleteDentist);
+        actionBtn.setPreferredSize(new Dimension(120, 40));
         actionBtn.addActionListener(this::handleActionButton);
-        
-        actionPanel.add(addBtn);
-        actionPanel.add(deleteBtn);
-        actionPanel.add(actionBtn);
-        
-        buttonPanel.add(navPanel, BorderLayout.WEST);
-        buttonPanel.add(actionPanel, BorderLayout.EAST);
-        
+
+        buttonPanel.add(actionBtn);
+
         return buttonPanel;
     }
 
@@ -392,7 +412,6 @@ public class DentistsInformation extends JFrame {
                 dentistsList = dentistDAO.getAllDentists();
                 currentDentistIndex = 0;
                 displayCurrentDentist();
-                updateNavigationButtons();
                 updateRecordCounter();
             } catch (Exception e) {
                 JOptionPane.showMessageDialog(this, 
@@ -425,33 +444,7 @@ public class DentistsInformation extends JFrame {
             ((JTextField) fieldInputs.get("Last Name")).setText(dentist.getLastName() != null ? dentist.getLastName() : "");
             ((JTextField) fieldInputs.get("Age")).setText(dentist.getAge() > 0 ? String.valueOf(dentist.getAge()) : "");
             ((JTextArea) fieldInputs.get("Bio")).setText(dentist.getBio() != null ? dentist.getBio() : "");
-            
-            // Load image
-            loadDentistImage(dentist.getDentistImgPath());
             selectedImagePath = dentist.getDentistImgPath();
-        }
-    }
-
-    private void loadDentistImage(String imagePath) {
-        if (imagePath != null && !imagePath.trim().isEmpty()) {
-            try {
-                File imageFile = new File(imagePath);
-                if (imageFile.exists()) {
-                    ImageIcon icon = new ImageIcon(imagePath);
-                    Image img = icon.getImage().getScaledInstance(250, 300, Image.SCALE_SMOOTH);
-                    imagePreview.setIcon(new ImageIcon(img));
-                    imagePreview.setText("");
-                } else {
-                    imagePreview.setIcon(null);
-                    imagePreview.setText("Image not found");
-                }
-            } catch (Exception e) {
-                imagePreview.setIcon(null);
-                imagePreview.setText("Error loading image");
-            }
-        } else {
-            imagePreview.setIcon(null);
-            imagePreview.setText("No Image Selected");
         }
     }
 
@@ -463,8 +456,6 @@ public class DentistsInformation extends JFrame {
                 ((JTextArea) field).setText("");
             }
         }
-        imagePreview.setIcon(null);
-        imagePreview.setText("No Image Selected");
         selectedImagePath = null;
     }
 
@@ -526,80 +517,18 @@ public class DentistsInformation extends JFrame {
             actionBtn.setText("Apply Changes");
             isEditing = true;
         } else {
-            // Validate and save
-            saveDentist();
-            setFieldsEditable(false);
-            actionBtn.setText("Edit");
-            isEditing = false;
-        }
-    }
-
-    private void addNewDentist(ActionEvent e) {
-        if (isEditing) {
+            // Confirm before applying changes
             int confirm = JOptionPane.showConfirmDialog(this,
-                "You have unsaved changes. Do you want to save before creating a new dentist?",
-                "Unsaved Changes",
-                JOptionPane.YES_NO_CANCEL_OPTION);
-                
+                "Are you sure you want to apply the changes?",
+                "Confirm Apply Changes",
+                JOptionPane.YES_NO_OPTION);
             if (confirm == JOptionPane.YES_OPTION) {
                 saveDentist();
-            } else if (confirm == JOptionPane.CANCEL_OPTION) {
-                return;
+                setFieldsEditable(false);
+                actionBtn.setText("Edit");
+                isEditing = false;
             }
-        }
-
-        // Create new dentist
-        currentDentist = new Dentist();
-        clearFields();
-        setFieldsEditable(true);
-        actionBtn.setText("Apply Changes");
-        isEditing = true;
-        
-        // Update record counter
-        recordCounter.setText("New Record");
-        currentDentistIndex = -1; // Indicate new record
-    }
-
-    private void deleteDentist(ActionEvent e) {
-        if (currentDentist == null || currentDentist.getInternalId() == 0) {
-            JOptionPane.showMessageDialog(this, 
-                "No dentist selected for deletion.", 
-                "Delete Error", 
-                JOptionPane.WARNING_MESSAGE);
-            return;
-        }
-
-        int confirm = JOptionPane.showConfirmDialog(this,
-            "Are you sure you want to delete this dentist record?",
-            "Confirm Delete",
-            JOptionPane.YES_NO_OPTION);
-            
-        if (confirm == JOptionPane.YES_OPTION) {
-            setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
-            try {
-                boolean success = dentistDAO.deleteDentist(currentDentist.getInternalId());
-                
-                if (success) {
-                    JOptionPane.showMessageDialog(this, 
-                        "Dentist deleted successfully!", 
-                        "Delete Success", 
-                        JOptionPane.INFORMATION_MESSAGE);
-                    loadDentistData(); // Reload data
-                } else {
-                    JOptionPane.showMessageDialog(this, 
-                        "Failed to delete dentist.", 
-                        "Delete Error", 
-                        JOptionPane.ERROR_MESSAGE);
-                }
-            } catch (Exception ex) {
-                JOptionPane.showMessageDialog(this, 
-                    "Error deleting dentist: " + ex.getMessage(), 
-                    "Delete Error", 
-                    JOptionPane.ERROR_MESSAGE);
-                ex.printStackTrace();
-            } finally {
-                setCursor(Cursor.getDefaultCursor());
-            }
+            // If NO, stay in edit mode
         }
     }
 
@@ -612,7 +541,6 @@ public class DentistsInformation extends JFrame {
         if (result == JFileChooser.APPROVE_OPTION) {
             File selectedFile = fileChooser.getSelectedFile();
             selectedImagePath = selectedFile.getAbsolutePath();
-            loadDentistImage(selectedImagePath);
         }
     }
 
