@@ -77,7 +77,7 @@ public class homepage extends JFrame{
                     case "Clinic Information":
                         dispose();
                         SwingUtilities.invokeLater(() -> {
-                            new clinicInformationFrame(); // Make sure this class exists
+                            new ClinicInformationFrame(); // Make sure this class exists
                         });
                         break;
                 }

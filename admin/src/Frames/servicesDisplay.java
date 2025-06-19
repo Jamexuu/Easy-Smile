@@ -185,9 +185,9 @@ public class ServicesDisplay extends JFrame {
         };
 
         servicesTable = new JTable(tableModel);
-        servicesTable.setRowHeight(40);
+        servicesTable.setRowHeight(36);
         servicesTable.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-        servicesTable.getTableHeader().setFont(new Font("Segoe UI", Font.BOLD, 14));
+        servicesTable.getTableHeader().setFont(new Font("Segoe UI", Font.BOLD, 18));
         servicesTable.getTableHeader().setBackground(BLUE_COLOR);
         servicesTable.getTableHeader().setForeground(Color.WHITE);
 
@@ -246,28 +246,72 @@ public class ServicesDisplay extends JFrame {
     }
 
     private JPanel createRightPanel() {
-        recordTitle = new JLabel("View a Service");
-        recordTitle.setFont(new Font("Segoe UI", Font.BOLD, 18));
-        recordTitle.setForeground(Color.decode("#192F8F"));
-        recordTitle.setAlignmentX(Component.LEFT_ALIGNMENT);
-
-        JPanel fieldsContainer = createFieldsContainer();
-        JPanel buttonContainer = createButtonContainer();
-
         JPanel recordPanel = new JPanel();
         recordPanel.setLayout(new BoxLayout(recordPanel, BoxLayout.Y_AXIS));
         recordPanel.setBackground(SIDEBAR_COLOR);
-        recordPanel.setPreferredSize(new Dimension(300, 0));
+        recordPanel.setPreferredSize(new Dimension(320, 0)); // Not too wide
         recordPanel.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createMatteBorder(0, 2, 0, 0, Color.decode("#C0C0C0")),
-                BorderFactory.createEmptyBorder(15, 15, 15, 15)
+            BorderFactory.createMatteBorder(0, 2, 0, 0, Color.decode("#C0C0C0")),
+            BorderFactory.createEmptyBorder(15, 15, 15, 15)
         ));
-        
+        recordPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+        JLabel recordTitle = new JLabel("View a Service");
+        recordTitle.setFont(new Font("Segoe UI", Font.BOLD, 20));
+        recordTitle.setForeground(Color.decode("#192F8F"));
+        recordTitle.setAlignmentX(Component.LEFT_ALIGNMENT); // Left align
+
+        JPanel fieldsContainer = new JPanel();
+        fieldsContainer.setLayout(new BoxLayout(fieldsContainer, BoxLayout.Y_AXIS));
+        fieldsContainer.setOpaque(false);
+        fieldsContainer.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+        Dimension fieldSize = new Dimension(220, 28);
+
+        String[] fieldLabels = {"Service Name:", "Description:", "Starting Price:", "Status:"};
+        for (String label : fieldLabels) {
+            JPanel fieldPanel = new JPanel();
+            fieldPanel.setLayout(new BoxLayout(fieldPanel, BoxLayout.Y_AXIS));
+            fieldPanel.setOpaque(false);
+            fieldPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+            JLabel fieldLabel = new JLabel(label);
+            fieldLabel.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+            fieldLabel.setForeground(Color.BLACK);
+            fieldLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+            fieldPanel.add(fieldLabel);
+            fieldPanel.add(Box.createVerticalStrut(5));
+
+            if (label.equals("Status:")) {
+                statusComboBox = new JComboBox<>(new String[]{"Available", "Unavailable"});
+                statusComboBox.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+                statusComboBox.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+                statusComboBox.setMaximumSize(new Dimension(450, 30));
+                statusComboBox.setAlignmentX(Component.LEFT_ALIGNMENT);
+                statusComboBox.setBackground(Color.WHITE);
+                statusComboBox.setBorder(BorderFactory.createLineBorder(Color.decode("#C0C0C0")));
+                fieldPanel.add(statusComboBox);
+            } else {
+                JTextField textField = new JTextField();
+                textField.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+                textField.setMaximumSize(new Dimension(450, 30));
+                textField.setPreferredSize(fieldSize);
+                textField.setMinimumSize(fieldSize);
+                textField.setAlignmentX(Component.LEFT_ALIGNMENT);
+                textField.setBackground(Color.WHITE);
+                textField.setBorder(BorderFactory.createLineBorder(Color.decode("#C0C0C0")));
+                fieldInputs.put(label, textField);
+                fieldPanel.add(textField);
+            }
+            fieldsContainer.add(fieldPanel);
+            fieldsContainer.add(Box.createVerticalStrut(12));
+        }
+
         recordPanel.add(recordTitle);
         recordPanel.add(Box.createVerticalStrut(15));
         recordPanel.add(fieldsContainer);
-        recordPanel.add(Box.createVerticalStrut(15));
-        recordPanel.add(buttonContainer);
+        recordPanel.add(Box.createVerticalGlue()); // Pushes everything up
 
         JPanel rightPanel = new JPanel(new BorderLayout());
         rightPanel.setPreferredSize(new Dimension(300, 300));
@@ -276,50 +320,6 @@ public class ServicesDisplay extends JFrame {
         rightPanel.setOpaque(false);
 
         return rightPanel;
-    }
-
-    private JPanel createFieldsContainer() {
-        String[] fieldLabels = {"Service Name:", "Description:", "Starting Price:", "Status:"};
-        JPanel fieldsContainer = new JPanel();
-        fieldsContainer.setLayout(new BoxLayout(fieldsContainer, BoxLayout.Y_AXIS));
-        fieldsContainer.setOpaque(false);
-
-        for (String label : fieldLabels) {
-            JPanel fieldPanel = new JPanel();
-            fieldPanel.setLayout(new BoxLayout(fieldPanel, BoxLayout.Y_AXIS));
-            fieldPanel.setOpaque(false);
-
-            JLabel fieldLabel = new JLabel(label);
-            fieldLabel.setFont(LABEL_FONT);
-            fieldLabel.setForeground(Color.decode("#192F8F"));
-
-            if (label.equals("Status:")) {
-                statusComboBox = new JComboBox<>(new String[]{"Available", "Unavailable"});
-                statusComboBox.setFont(new Font("Segoe UI", Font.PLAIN, 13));
-                statusComboBox.setMaximumSize(new Dimension(250, 26));
-                statusComboBox.setEnabled(false);
-                fieldInputs.put(label, new JTextField()); // Store a dummy JTextField for consistency
-                
-                fieldPanel.add(fieldLabel);
-                fieldPanel.add(statusComboBox);
-            } else {
-                JTextField textField = new JTextField();
-                textField.setFont(new Font("Segoe UI", Font.PLAIN, 13));
-                textField.setMaximumSize(new Dimension(250, 26));
-                textField.setBackground(Color.WHITE);
-                textField.setBorder(BorderFactory.createLineBorder(Color.decode("#C0C0C0")));
-                textField.setEditable(false);
-
-                fieldInputs.put(label, textField);
-                fieldPanel.add(fieldLabel);
-                fieldPanel.add(textField);
-            }
-            
-            fieldsContainer.add(fieldPanel);
-            fieldsContainer.add(Box.createVerticalStrut(8));
-        }
-
-        return fieldsContainer;
     }
 
     private JPanel createButtonContainer() {
@@ -420,7 +420,7 @@ public class ServicesDisplay extends JFrame {
         selectedRow = row;
         populateFields(currentService);
         recordTitle.setText("View Service");
-        setFieldsEditable(false);
+        recordTitle.setAlignmentX(Component.LEFT_ALIGNMENT);
         isEditing = false;
     }
 
