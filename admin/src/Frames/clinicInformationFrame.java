@@ -430,7 +430,7 @@ public class ClinicInformationFrame extends JFrame {
             sidebar.setVisible(!sidebar.isVisible());
             sidebar.revalidate();
             sidebar.repaint();
-        }
+        }   
     }
     
     private void updateMenuLabels(JLabel homeLabel, JLabel servicesLabel, JLabel dentistLabel, 
