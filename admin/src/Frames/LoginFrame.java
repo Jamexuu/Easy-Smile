@@ -5,14 +5,14 @@ import java.awt.event.ActionListener;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import javax.swing.*;
-import DAO.adminDAO; // Import the DAO
+import DAO.adminDAO; 
 import main.Main;
 
 public class LoginFrame {
     private final Font mainFont = new Font("Segoe Ui", Font.BOLD, 18);
     private final Font placeholderFont = new Font("Segoe Ui", Font.PLAIN, 16);
     
-    private JTextField tfEmail;
+    private JTextField tfUsername;
     private JPasswordField tfPassword;
     private JFrame parentFrame;
     
@@ -24,14 +24,14 @@ public class LoginFrame {
      * Creates and returns the login form panel
      */
     public JPanel createLoginForm() {
-        JLabel lbEmail = new JLabel("Email");
-        lbEmail.setFont(mainFont);
-        lbEmail.setBounds(100, -10, 100, 30);
+        JLabel lbUsername = new JLabel("Username");
+        lbUsername.setFont(mainFont);
+        lbUsername.setBounds(100, -10, 100, 30);
 
-        tfEmail = new JTextField();
-        tfEmail.setFont(mainFont);
-        tfEmail.setBounds(100, 20, 250, 30);
-        setPlaceholder(tfEmail, "Enter your email");
+        tfUsername = new JTextField();
+        tfUsername.setFont(mainFont);
+        tfUsername.setBounds(100, 20, 250, 30);
+        setPlaceholder(tfUsername, "Enter your Username");
 
         JLabel lbPassword = new JLabel("Password");
         lbPassword.setFont(mainFont);
@@ -47,8 +47,8 @@ public class LoginFrame {
         formPanel.setPreferredSize(new Dimension(450, 160));
         formPanel.setBackground(Color.WHITE);
 
-        formPanel.add(lbEmail);
-        formPanel.add(tfEmail);
+        formPanel.add(lbUsername);
+        formPanel.add(tfUsername);
         formPanel.add(lbPassword);
         formPanel.add(tfPassword);
 
@@ -132,18 +132,18 @@ public class LoginFrame {
     private class LoginActionListener implements ActionListener {
         @Override
         public void actionPerformed(ActionEvent e) {
-            String email = tfEmail.getText();
+            String Username = tfUsername.getText();
             String password = new String(tfPassword.getPassword());
             
             // Skip validation if placeholder text is still showing
-            if (email.equals("Enter your email") || password.equals("Enter your password")) {
+            if (Username.equals("Enter your username") || password.equals("Enter your password")) {
                 JOptionPane.showMessageDialog(parentFrame, "Please enter your credentials", "Login Error", JOptionPane.ERROR_MESSAGE);
                 return;
             }
             
             try {
                 // Use DAO for validation
-                if (adminDAO.validateCredentials(email, password)) {
+                if (adminDAO.validateCredentials(Username, password)) {
                     JOptionPane.showMessageDialog(parentFrame, "Login Successful!", "Success", JOptionPane.INFORMATION_MESSAGE);
                     
                     // Navigate to homepage - Fixed: Check if parent is Main class
@@ -158,7 +158,7 @@ public class LoginFrame {
                     }
                 } else {
                     // Use DAO for specific error message
-                    String errorMessage = adminDAO.getLoginError(email, password);
+                    String errorMessage = adminDAO.getLoginError(Username, password);
                     JOptionPane.showMessageDialog(parentFrame, errorMessage, "Login Error", JOptionPane.ERROR_MESSAGE);
                 }
             } catch (Exception ex) {
@@ -177,9 +177,9 @@ public class LoginFrame {
     private class ClearActionListener implements ActionListener {
         @Override
         public void actionPerformed(ActionEvent e) {
-            tfEmail.setText("");
+            tfUsername.setText("");
             tfPassword.setText("");
-            setPlaceholder(tfEmail, "Enter your email");
+            setPlaceholder(tfUsername, "Enter your Username");
             setPlaceholder(tfPassword, "Enter your password");
         }
     }

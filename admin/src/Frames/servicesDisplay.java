@@ -2,6 +2,7 @@ package Frames;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableCellEditor;
 import javax.swing.table.TableCellRenderer;
 import java.awt.*;
 import java.awt.event.*;
@@ -33,11 +34,13 @@ public class ServicesDisplay extends JFrame {
     private java.util.Map<String, JTextField> fieldInputs = new java.util.HashMap<>();
     private String selectedMenu = "Services Display";
     private JPanel sidebarPanel;
-    private JLabel recordTitle;
+    private JLabel recordTitle = new JLabel("View a Service");
     private boolean isEditing = false;
     private int selectedRow = -1;
 
     private boolean isInitialized = false;
+
+    private JPanel saveButtonPanel; 
 
     public ServicesDisplay() {
         servicesDAO = new ServicesDAO();
@@ -89,10 +92,14 @@ public class ServicesDisplay extends JFrame {
         JButton menuBtn = makeButton("Menu");
         menuBtn.addActionListener(e -> toggleSidebar());
 
+        JButton refreshBtn = makeButton("Refresh");
+        refreshBtn.addActionListener(e -> refreshPage());
+
         JPanel blueHeaderPanel = new JPanel(new BorderLayout());
         blueHeaderPanel.setBackground(LIGHT_BLUE_COLOR);
         blueHeaderPanel.setPreferredSize(new Dimension(1200, 50));
         blueHeaderPanel.add(menuBtn, BorderLayout.WEST);
+        blueHeaderPanel.add(refreshBtn, BorderLayout.EAST);
         blueHeaderPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
         
         return blueHeaderPanel;
@@ -224,6 +231,7 @@ public class ServicesDisplay extends JFrame {
                 return createActionPanel(row);
             }
         });
+        servicesTable.getColumn("Actions").setCellEditor(new ActionPanelEditor());
     }
 
     private JPanel createActionPanel(int row) {
@@ -249,18 +257,20 @@ public class ServicesDisplay extends JFrame {
         JPanel recordPanel = new JPanel();
         recordPanel.setLayout(new BoxLayout(recordPanel, BoxLayout.Y_AXIS));
         recordPanel.setBackground(SIDEBAR_COLOR);
-        recordPanel.setPreferredSize(new Dimension(320, 0)); // Not too wide
+        recordPanel.setPreferredSize(new Dimension(320, 0)); // Fixed width
         recordPanel.setBorder(BorderFactory.createCompoundBorder(
             BorderFactory.createMatteBorder(0, 2, 0, 0, Color.decode("#C0C0C0")),
             BorderFactory.createEmptyBorder(15, 15, 15, 15)
         ));
         recordPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-        JLabel recordTitle = new JLabel("View a Service");
+        // Title label
+        recordTitle = new JLabel("View a Service");
         recordTitle.setFont(new Font("Segoe UI", Font.BOLD, 20));
         recordTitle.setForeground(Color.decode("#192F8F"));
-        recordTitle.setAlignmentX(Component.LEFT_ALIGNMENT); // Left align
+        recordTitle.setAlignmentX(Component.LEFT_ALIGNMENT);
 
+        // Fields container
         JPanel fieldsContainer = new JPanel();
         fieldsContainer.setLayout(new BoxLayout(fieldsContainer, BoxLayout.Y_AXIS));
         fieldsContainer.setOpaque(false);
@@ -286,7 +296,6 @@ public class ServicesDisplay extends JFrame {
             if (label.equals("Status:")) {
                 statusComboBox = new JComboBox<>(new String[]{"Available", "Unavailable"});
                 statusComboBox.setFont(new Font("Segoe UI", Font.PLAIN, 13));
-                statusComboBox.setFont(new Font("Segoe UI", Font.PLAIN, 13));
                 statusComboBox.setMaximumSize(new Dimension(450, 30));
                 statusComboBox.setAlignmentX(Component.LEFT_ALIGNMENT);
                 statusComboBox.setBackground(Color.WHITE);
@@ -308,10 +317,20 @@ public class ServicesDisplay extends JFrame {
             fieldsContainer.add(Box.createVerticalStrut(12));
         }
 
+        // Save/Cancel button panel
+        JPanel buttonPanel = createButtonContainer();
+        buttonPanel.setVisible(false); // Initially hidden
+        this.saveButtonPanel = buttonPanel;
+
+        // Add components to record panel
         recordPanel.add(recordTitle);
         recordPanel.add(Box.createVerticalStrut(15));
         recordPanel.add(fieldsContainer);
+        recordPanel.add(buttonPanel); // Add button panel below fields
         recordPanel.add(Box.createVerticalGlue()); // Pushes everything up
+
+        // Set fields to read-only by default
+        setFieldsEditable(false);
 
         JPanel rightPanel = new JPanel(new BorderLayout());
         rightPanel.setPreferredSize(new Dimension(300, 300));
@@ -326,23 +345,59 @@ public class ServicesDisplay extends JFrame {
         JPanel buttonContainer = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 0));
         buttonContainer.setOpaque(false);
 
-        JButton addBtn = makeButton("Add New");
         JButton saveBtn = makeButton("Save");
         JButton cancelBtn = makeButton("Cancel");
 
-        addBtn.addActionListener(e -> addNewService());
-        saveBtn.addActionListener(e -> saveService());
+        saveBtn.addActionListener(e -> saveService()
+
+        );
         cancelBtn.addActionListener(e -> cancelEdit());
 
-        addBtn.setBackground(Color.decode("#28a745"));
         saveBtn.setBackground(Color.decode("#007bff"));
         cancelBtn.setBackground(Color.decode("#6c757d"));
 
-        buttonContainer.add(addBtn);
         buttonContainer.add(saveBtn);
         buttonContainer.add(cancelBtn);
 
         return buttonContainer;
+    }
+
+    private class ActionPanelEditor extends AbstractCellEditor implements TableCellEditor {
+        private JPanel panel;
+
+        @Override
+        public Component getTableCellEditorComponent(JTable table, Object value, boolean isSelected, int row, int column) {
+            panel = new JPanel(new FlowLayout(FlowLayout.CENTER, 5, 0));
+            panel.setOpaque(false);
+
+            JButton viewBtn = makeSmallButton("View");
+            JButton editBtn = makeSmallButton("Edit");
+            JButton deleteBtn = makeSmallButton("Delete");
+
+            viewBtn.addActionListener(e -> {
+                viewService(row);
+                fireEditingStopped();
+            });
+            editBtn.addActionListener(e -> {
+                editService(row);
+                fireEditingStopped();
+            });
+            deleteBtn.addActionListener(e -> {
+                deleteService(row);
+                fireEditingStopped();
+            });
+
+            panel.add(viewBtn);
+            panel.add(editBtn);
+            panel.add(deleteBtn);
+
+            return panel;
+        }
+
+        @Override
+        public Object getCellEditorValue() {
+            return null;
+        }
     }
 
     // Helper methods
@@ -364,6 +419,7 @@ public class ServicesDisplay extends JFrame {
         btn.setMaximumSize(new Dimension(110, 30));
         btn.setMargin(new Insets(2, 2, 2, 2));
         btn.setFocusPainted(false);
+        
         return btn;
     }
 
@@ -407,32 +463,84 @@ public class ServicesDisplay extends JFrame {
                 service.getServiceDesc(),
                 String.format("₱%.2f", service.getStartingPrice()),
                 service.getStatus(),
-                createActionPanel(tableModel.getRowCount())
+                ""
             };
             tableModel.addRow(rowData);
         }
     }
 
     private void viewService(int row) {
-        if (row < 0 || row >= servicesList.size()) return;
-        
-        currentService = servicesList.get(row);
-        selectedRow = row;
-        populateFields(currentService);
-        recordTitle.setText("View Service");
-        recordTitle.setAlignmentX(Component.LEFT_ALIGNMENT);
-        isEditing = false;
+        try {
+            // Ensure row is valid
+            if (row < 0 || row >= servicesList.size()) {
+                JOptionPane.showMessageDialog(this, "Invalid row selected!", "Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
+            setFieldsEditable(false); // Disable editing mode
+
+            // Populate fields with data from the selected row
+            currentService = servicesList.get(row);
+            selectedRow = row;
+            populateFields(currentService);
+
+            recordTitle.setText("View Service");
+            recordTitle.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+            // Hide Save/Cancel buttons
+            if (saveButtonPanel != null) {
+                saveButtonPanel.setVisible(false);
+                saveButtonPanel.revalidate();
+                saveButtonPanel.repaint();
+            }
+
+            isEditing = false;
+
+            System.out.println("Viewing service at row: " + row); // Debug output
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this, 
+                "Error viewing service: " + e.getMessage(), 
+                "View Error", 
+                JOptionPane.ERROR_MESSAGE);
+            e.printStackTrace();
+        }
     }
 
     private void editService(int row) {
-        if (row < 0 || row >= servicesList.size()) return;
-        
-        currentService = servicesList.get(row);
-        selectedRow = row;
-        populateFields(currentService);
-        recordTitle.setText("Edit Service");
-        setFieldsEditable(true);
-        isEditing = true;
+        try {
+            // Ensure row is valid
+            if (row < 0 || row >= servicesList.size()) {
+                JOptionPane.showMessageDialog(this, "Invalid row selected!", "Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
+            setFieldsEditable(true); // Enable editing mode
+
+            // Populate fields with data from the selected row
+            currentService = servicesList.get(row);
+            selectedRow = row;
+            populateFields(currentService);
+
+            recordTitle.setText("Edit Service");
+            recordTitle.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+            // Show Save/Cancel buttons
+            if (saveButtonPanel != null) {
+                saveButtonPanel.setVisible(true);
+                saveButtonPanel.revalidate();
+                saveButtonPanel.repaint();
+            }
+
+            isEditing = true;
+
+            System.out.println("Editing service at row: " + row); // Debug output
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this, 
+                "Error editing service: " + e.getMessage(), 
+                "Edit Error", 
+                JOptionPane.ERROR_MESSAGE);
+            e.printStackTrace();
+        }
     }
 
     private void deleteService(int row) {
@@ -473,15 +581,6 @@ public class ServicesDisplay extends JFrame {
                 setCursor(Cursor.getDefaultCursor());
             }
         }
-    }
-
-    private void addNewService() {
-        currentService = new Service();
-        selectedRow = -1;
-        clearFields();
-        recordTitle.setText("Add New Service");
-        setFieldsEditable(true);
-        isEditing = true;
     }
 
     private void saveService() {
@@ -540,18 +639,59 @@ public class ServicesDisplay extends JFrame {
                 "Are you sure you want to cancel? Any unsaved changes will be lost.",
                 "Confirm Cancel",
                 JOptionPane.YES_NO_OPTION);
-                
+
             if (confirm == JOptionPane.YES_OPTION) {
                 setFieldsEditable(false);
                 recordTitle.setText("View Service");
+
+                // Hide the Save/Cancel button panel
+                if (saveButtonPanel != null) {
+                    saveButtonPanel.setVisible(false);
+                    saveButtonPanel.revalidate();
+                    saveButtonPanel.repaint();
+                }
+
                 isEditing = false;
-                
+
                 if (selectedRow >= 0) {
                     viewService(selectedRow);
                 } else {
                     clearFields();
                 }
             }
+        }
+    }
+
+    private void refreshPage() {
+        setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
+        try {
+            // Reload services data
+            loadServicesData();
+
+            // Reset fields to default state
+            clearFields();
+            setFieldsEditable(false);
+
+            // Reset the title to "View a Service"
+            recordTitle.setText("View a Service");
+
+            // Hide Save/Cancel buttons
+            if (saveButtonPanel != null) {
+                saveButtonPanel.setVisible(false);
+                saveButtonPanel.revalidate();
+                saveButtonPanel.repaint();
+            }
+
+            isEditing = false;
+            selectedRow = -1; // Reset selected row
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this, 
+                "Error refreshing page: " + e.getMessage(), 
+                "Refresh Error", 
+                JOptionPane.ERROR_MESSAGE);
+            e.printStackTrace();
+        } finally {
+            setCursor(Cursor.getDefaultCursor());
         }
     }
 
@@ -619,8 +759,8 @@ public class ServicesDisplay extends JFrame {
             field.setEditable(editable);
             field.setBackground(editable ? Color.WHITE : Color.decode("#F5F5F5"));
         }
-        
-        // Fixed: Use the statusComboBox field directly
+
+        // Enable/disable the status combo box
         statusComboBox.setEnabled(editable);
     }
 

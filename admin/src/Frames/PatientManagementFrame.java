@@ -2,6 +2,7 @@ package Frames;
 
 import DAO.PatientDAO;
 import DAO.PatientDAO.Patient;
+import DAO.AccountManagementDAO;
 import javax.swing.*;
 import javax.swing.table.*;
 import java.awt.*;
@@ -29,8 +30,9 @@ public class PatientManagementFrame extends JFrame {
 
     private boolean isInitialized = false; 
 
+    private int editingRow = -1; // Track currently selected row for editing
+
     public PatientManagementFrame() {
-        // Initialize DAO and data structures
         patientDAO = new PatientDAO();
         patientIds = new ArrayList<>();
         
@@ -201,13 +203,13 @@ public class PatientManagementFrame extends JFrame {
     }
 
     private void createTable() {
-        String[] columnNames = {"Patient ID", "First Name", "Middle Name", "Last Name", "Birthday", "Gender", "Actions"};
+        String[] columnNames = {"Patient ID", "First Name", "Middle Name", "Last Name", "Birthday", "Gender", "Created By:", "Actions"};
         Object[][] data = {};
 
         tableModel = new DefaultTableModel(data, columnNames) {
             @Override
             public boolean isCellEditable(int row, int column) {
-                return column == 6; // Only Actions column is editable
+                return column == 7; // Only Actions column is editable
             }
         };
 
@@ -222,9 +224,10 @@ public class PatientManagementFrame extends JFrame {
         table.setRowSorter(tableSorter);
 
         // Set column widths
-        table.getColumn("Patient ID").setPreferredWidth(80);
-        table.getColumn("Patient ID").setMinWidth(80);
+        table.getColumn("Patient ID").setPreferredWidth(100);
+        table.getColumn("Patient ID").setMinWidth(100);
         table.getColumn("Patient ID").setMaxWidth(100);
+
         table.getColumn("Actions").setPreferredWidth(180);
         table.getColumn("Actions").setMinWidth(180);
         table.getColumn("Actions").setMaxWidth(180);
@@ -232,6 +235,11 @@ public class PatientManagementFrame extends JFrame {
         // Set up actions column
         table.getColumn("Actions").setCellRenderer(new ActionsRenderer());
         table.getColumn("Actions").setCellEditor(new ActionsEditor(table, sidebarFields));
+
+        // Make all columns unresizable
+        for (int i = 0; i < table.getColumnModel().getColumnCount(); i++) {
+            table.getColumnModel().getColumn(i).setResizable(false);
+        }
     }
 
     private JButton saveButton;
@@ -291,7 +299,7 @@ public class PatientManagementFrame extends JFrame {
     }
 
     private void createSidebarFields(JPanel sidebarPanel) {
-        String[] fieldLabels = {"Patient ID:", "First Name:", "Middle Name:", "Last Name:", "Birthday:", "Gender:"};
+        String[] fieldLabels = {"Patient ID:", "First Name:", "Middle Name:", "Last Name:", "Birthday:", "Gender:", "Created By:"};
         sidebarFields = new ArrayList<>();
 
         for (String label : fieldLabels) {
@@ -338,7 +346,7 @@ public class PatientManagementFrame extends JFrame {
                 sidebarFields.get(i).setText(val != null ? val.toString() : "");
             }
             
-            // Enable editing mode
+            editingRow = row;
             setEditMode(true);
             
             System.out.println("Editing patient at row: " + row); // Debug output
@@ -357,6 +365,7 @@ public class PatientManagementFrame extends JFrame {
         
         // Make patient ID field always read-only (should not be edited)
         sidebarFields.get(0).setEditable(false);
+        sidebarFields.get(6).setEditable(false);
         
         // Make other fields editable or read-only based on edit mode
         for (int i = 1; i < sidebarFields.size(); i++) {
@@ -378,17 +387,21 @@ public class PatientManagementFrame extends JFrame {
     // Add method to handle save button
     private void savePatientChanges(ActionEvent e) {
         try {
-            // Get the patient ID from the first field
-            int patientId = Integer.parseInt(sidebarFields.get(0).getText());
-            
-            // Create patient object from fields
+
+            if(editingRow < 0 || editingRow >= patientIds.size()){
+                JOptionPane.showMessageDialog(this, "No Patient selected!", "Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+            int patientId = patientIds.get(editingRow);
+
             PatientDAO.Patient patient = new PatientDAO.Patient();
             patient.setInternalId(patientId);
             patient.setFirstName(sidebarFields.get(1).getText());
             patient.setMiddleName(sidebarFields.get(2).getText());
             patient.setLastName(sidebarFields.get(3).getText());
-            patient.setBirthDate(sidebarFields.get(4).getText());
+            patient.setBirthDate(sidebarFields.get(4).getText());   
             patient.setGender(sidebarFields.get(5).getText());
+            patient.setCreatedBy(sidebarFields.get(6).getText());
             
             // Validate patient data
             if (patient.getFirstName().isEmpty() || patient.getLastName().isEmpty() || 
@@ -407,20 +420,19 @@ public class PatientManagementFrame extends JFrame {
                 // Exit edit mode
                 setEditMode(false);
                 
-                // Update the display in the table
-                int selectedRow = table.getSelectedRow();
-                if (selectedRow >= 0) {
-                    tableModel.setValueAt(patient.getFirstName(), selectedRow, 1);
-                    tableModel.setValueAt(patient.getMiddleName(), selectedRow, 2);
-                    tableModel.setValueAt(patient.getLastName(), selectedRow, 3);
-                    tableModel.setValueAt(patient.getBirthDate(), selectedRow, 4);
-                    tableModel.setValueAt(patient.getGender(), selectedRow, 5);
+                if (editingRow >= 0) {
+                    tableModel.setValueAt(patient.getFirstName(), editingRow, 1);
+                    tableModel.setValueAt(patient.getMiddleName(), editingRow, 2);
+                    tableModel.setValueAt(patient.getLastName(), editingRow, 3);
+                    tableModel.setValueAt(patient.getBirthDate(), editingRow, 4);
+                    tableModel.setValueAt(patient.getGender(), editingRow, 5);
                 }
                 
                 JOptionPane.showMessageDialog(this, 
                     "Patient record updated successfully!", 
                     "Success", 
                     JOptionPane.INFORMATION_MESSAGE);
+                editingRow = -1;    
             } else {
                 JOptionPane.showMessageDialog(this, 
                     "Failed to update patient record!", 
@@ -464,13 +476,12 @@ public class PatientManagementFrame extends JFrame {
     private void cancelEdit(ActionEvent e) {
         // Just disable edit mode and reset form from current selection
         setEditMode(false);
-        
-        // Refresh the fields from the table data
-        int selectedRow = table.getSelectedRow();
-        if (selectedRow >= 0) {
-            viewPatient(selectedRow);
+
+        if (editingRow >= 0) {
+            viewPatient(editingRow);
         } else {
             clearSidebarFields();
+            editingRow = -1;
         }
     }
 
@@ -487,6 +498,7 @@ public class PatientManagementFrame extends JFrame {
                     patient.getLastName(),
                     patient.getBirthDate(),
                     patient.getGender(),
+                    patient.getCreatedBy(),
                     null // Actions column
                 });
                 patientIds.add(patient.getInternalId()); // Store patient ID for this row
