@@ -40,7 +40,7 @@ public class DentistDAO {
             this.bio = bio;
             this.dentistImgPath = dentistImgPath;
             // Generate formatted dentist ID
-            this.dentistId = formatId("den-", 1000000, internalId);
+            this.dentistId = formatId("DEN-", 1000000, internalId);
         }
 
         // Getters and Setters

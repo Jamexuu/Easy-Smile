@@ -22,6 +22,7 @@ public class AppointmentDAO {
         private String appointmentDate;     // DATE
         private String appointmentTime;     // TIME
         private String appointmentDateTime; // DATETIME
+        private String status;
         private String createdAt;
         private String updatedAt;
 
@@ -29,7 +30,7 @@ public class AppointmentDAO {
         public Appointment() {}
 
         public Appointment(int internalId, String patientId, String scheduledBy, String serviceId,
-                          String appointmentDate, String appointmentTime, String appointmentDateTime) {
+                        String appointmentDate, String appointmentTime, String appointmentDateTime) {
             this.internalId = internalId;
             this.patientId = patientId;
             this.scheduledBy = scheduledBy;
@@ -72,6 +73,9 @@ public class AppointmentDAO {
         public String getAppointmentDateTime() { return appointmentDateTime; }
         public void setAppointmentDateTime(String appointmentDateTime) { this.appointmentDateTime = appointmentDateTime; }
 
+        public String getStatus() {return status;}
+        public void setStatus(String status) {this.status = status;}
+
         public String getCreatedAt() { return createdAt; }
         public void setCreatedAt(String createdAt) { this.createdAt = createdAt; }
 
@@ -95,6 +99,7 @@ public class AppointmentDAO {
         appointment.setAppointmentDate(rs.getString("AppointmentDate"));
         appointment.setAppointmentTime(rs.getString("AppointmentTime"));
         appointment.setAppointmentDateTime(rs.getString("AppointmentDateTime"));
+        appointment.setStatus(rs.getString("status"));
         appointment.setCreatedAt(rs.getString("created_at"));
         appointment.setUpdatedAt(rs.getString("updated_at"));
         return appointment;
@@ -104,7 +109,7 @@ public class AppointmentDAO {
     public List<Appointment> getAllAppointments() throws SQLException {
         List<Appointment> appointments = new ArrayList<>();
         String sql = "SELECT AppointmentID, InternalID, PatientID, ScheduledBy, ServiceID, " +
-                    "AppointmentDate, AppointmentTime, AppointmentDateTime, created_at, updated_at " +
+                    "AppointmentDate, AppointmentTime, AppointmentDateTime, created_at, updated_at " + ", Status " +
                     "FROM AppointmentTbl ORDER BY AppointmentDateTime DESC";
 
         try (Connection conn = DBConnector.getConnection();
@@ -121,7 +126,7 @@ public class AppointmentDAO {
     // Get appointment by Internal ID
     public Appointment getAppointmentById(int internalId) throws SQLException {
         String sql = "SELECT AppointmentID, InternalID, PatientID, ScheduledBy, ServiceID, " +
-                    "AppointmentDate, AppointmentTime, AppointmentDateTime, created_at, updated_at " +
+                    "AppointmentDate, AppointmentTime, AppointmentDateTime, created_at, updated_at " + ", Status " +
                     "FROM AppointmentTbl WHERE InternalID = ?";
         
         try (Connection conn = DBConnector.getConnection();
@@ -141,7 +146,7 @@ public class AppointmentDAO {
     // Get appointment by formatted ID (e.g., "apo-1000000")
     public Appointment getAppointmentByFormattedId(String formattedId) throws SQLException {
         String sql = "SELECT AppointmentID, InternalID, PatientID, ScheduledBy, ServiceID, " +
-                    "AppointmentDate, AppointmentTime, AppointmentDateTime, created_at, updated_at " +
+                    "AppointmentDate, AppointmentTime, AppointmentDateTime, created_at, updated_at " + ", Status " +
                     "FROM AppointmentTbl WHERE AppointmentID = ?";
         
         try (Connection conn = DBConnector.getConnection();
@@ -161,8 +166,8 @@ public class AppointmentDAO {
     // Add new appointment
     public boolean addAppointment(Appointment appointment) throws SQLException {
         String sql = "INSERT INTO AppointmentTbl (AppointmentID, InternalID, PatientID, ScheduledBy, " +
-                    "ServiceID, AppointmentDate, AppointmentTime, AppointmentDateTime) " +
-                    "VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+                    "ServiceID, AppointmentDate, AppointmentTime, AppointmentDateTime, status) " +
+                    "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
         try (Connection conn = DBConnector.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
@@ -178,7 +183,9 @@ public class AppointmentDAO {
             stmt.setString(5, appointment.getServiceId());
             stmt.setString(6, appointment.getAppointmentDate());
             stmt.setString(7, appointment.getAppointmentTime());
-            stmt.setString(8, appointment.getAppointmentDateTime());
+            stmt.setString(8, appointment.getStatus());
+            stmt.setString(9, appointment.getAppointmentDateTime());
+            
 
             boolean success = stmt.executeUpdate() > 0;
             
@@ -195,11 +202,11 @@ public class AppointmentDAO {
     // Update appointment
     public boolean updateAppointment(Appointment appointment) throws SQLException {
         String sql = "UPDATE AppointmentTbl SET PatientID = ?, ScheduledBy = ?, ServiceID = ?, " +
-                    "AppointmentDate = ?, AppointmentTime = ?, AppointmentDateTime = ? " +
+                    "AppointmentDate = ?, AppointmentTime = ?, AppointmentDateTime = ? " + ", Status = ? " +
                     "WHERE InternalID = ?";
 
         try (Connection conn = DBConnector.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            PreparedStatement stmt = conn.prepareStatement(sql)) {
             
             stmt.setString(1, appointment.getPatientId());
             stmt.setString(2, appointment.getScheduledBy());
@@ -207,7 +214,8 @@ public class AppointmentDAO {
             stmt.setString(4, appointment.getAppointmentDate());
             stmt.setString(5, appointment.getAppointmentTime());
             stmt.setString(6, appointment.getAppointmentDateTime());
-            stmt.setInt(7, appointment.getInternalId());
+            stmt.setString(7, appointment.getStatus());
+            stmt.setInt(8, appointment.getInternalId());
 
             return stmt.executeUpdate() > 0;
         }
@@ -218,7 +226,7 @@ public class AppointmentDAO {
         String sql = "DELETE FROM AppointmentTbl WHERE InternalID = ?";
 
         try (Connection conn = DBConnector.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            PreparedStatement stmt = conn.prepareStatement(sql)) {
             
             stmt.setInt(1, internalId);
             return stmt.executeUpdate() > 0;
@@ -241,7 +249,7 @@ public class AppointmentDAO {
     public List<Appointment> getAppointmentsByPatientId(String patientId) throws SQLException {
         List<Appointment> appointments = new ArrayList<>();
         String sql = "SELECT AppointmentID, InternalID, PatientID, ScheduledBy, ServiceID, " +
-                    "AppointmentDate, AppointmentTime, AppointmentDateTime, created_at, updated_at " +
+                    "AppointmentDate, AppointmentTime, AppointmentDateTime, created_at, updated_at " + ", Status " +
                     "FROM AppointmentTbl WHERE PatientID = ? ORDER BY AppointmentDateTime DESC";
 
         try (Connection conn = DBConnector.getConnection();
@@ -262,7 +270,7 @@ public class AppointmentDAO {
     public List<Appointment> getAppointmentsByServiceId(String serviceId) throws SQLException {
         List<Appointment> appointments = new ArrayList<>();
         String sql = "SELECT AppointmentID, InternalID, PatientID, ScheduledBy, ServiceID, " +
-                    "AppointmentDate, AppointmentTime, AppointmentDateTime, created_at, updated_at " +
+                    "AppointmentDate, AppointmentTime, AppointmentDateTime, created_at, updated_at " + ", Status " +
                     "FROM AppointmentTbl WHERE ServiceID = ? ORDER BY AppointmentDateTime DESC";
 
         try (Connection conn = DBConnector.getConnection();
@@ -283,7 +291,7 @@ public class AppointmentDAO {
     public List<Appointment> getAppointmentsByDateRange(String startDate, String endDate) throws SQLException {
         List<Appointment> appointments = new ArrayList<>();
         String sql = "SELECT AppointmentID, InternalID, PatientID, ScheduledBy, ServiceID, " +
-                    "AppointmentDate, AppointmentTime, AppointmentDateTime, created_at, updated_at " +
+                    "AppointmentDate, AppointmentTime, AppointmentDateTime, created_at, updated_at " + ", Status " +
                     "FROM AppointmentTbl WHERE AppointmentDate BETWEEN ? AND ? " +
                     "ORDER BY AppointmentDateTime ASC";
 
@@ -306,7 +314,7 @@ public class AppointmentDAO {
     public List<Appointment> getAppointmentsByDate(String date) throws SQLException {
         List<Appointment> appointments = new ArrayList<>();
         String sql = "SELECT AppointmentID, InternalID, PatientID, ScheduledBy, ServiceID, " +
-                    "AppointmentDate, AppointmentTime, AppointmentDateTime, created_at, updated_at " +
+                    "AppointmentDate, AppointmentTime, AppointmentDateTime, created_at, updated_at " + ", Status " +
                     "FROM AppointmentTbl WHERE AppointmentDate = ? ORDER BY AppointmentTime ASC";
 
         try (Connection conn = DBConnector.getConnection();
@@ -358,7 +366,7 @@ public class AppointmentDAO {
         List<Appointment> appointments = new ArrayList<>();
         
         // First check if search text is a formatted ID
-        if (searchText.startsWith("apo-")) {
+        if (searchText.startsWith("APO-")) {
             Appointment appointment = getAppointmentByFormattedId(searchText);
             if (appointment != null) {
                 appointments.add(appointment);
@@ -367,7 +375,7 @@ public class AppointmentDAO {
         }
         
         String sql = "SELECT AppointmentID, InternalID, PatientID, ScheduledBy, ServiceID, " +
-                    "AppointmentDate, AppointmentTime, AppointmentDateTime, created_at, updated_at " +
+                    "AppointmentDate, AppointmentTime, AppointmentDateTime, created_at, updated_at " + ", Status " +
                     "FROM AppointmentTbl WHERE " +
                     "PatientID LIKE ? OR " +
                     "ServiceID LIKE ? OR " +

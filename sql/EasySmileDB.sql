@@ -93,6 +93,9 @@ CREATE TABLE AppointmentTbl(
 
 SELECT * FROM AppointmentTbl;
 
+ALTER TABLE appointmenttbl
+ADD Status ENUM('Upcomming', 'Completed', 'Cancelled');
+
 -- Admin Table
 ALTER TABLE AdminTbl
 ADD COLUMN created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,

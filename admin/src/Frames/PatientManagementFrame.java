@@ -481,7 +481,7 @@ public class PatientManagementFrame extends JFrame {
             
             for (Patient patient : patients) {
                 tableModel.addRow(new Object[]{
-                    patient.getInternalId(), // Patient ID
+                    patient.getPatientId(), // Patient ID
                     patient.getFirstName(),
                     patient.getMiddleName() != null ? patient.getMiddleName() : "",
                     patient.getLastName(),
