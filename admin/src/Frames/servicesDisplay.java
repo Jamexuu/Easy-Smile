@@ -257,26 +257,34 @@ public class ServicesDisplay extends JFrame {
         JPanel recordPanel = new JPanel();
         recordPanel.setLayout(new BoxLayout(recordPanel, BoxLayout.Y_AXIS));
         recordPanel.setBackground(SIDEBAR_COLOR);
-        recordPanel.setPreferredSize(new Dimension(320, 0)); // Fixed width
+        recordPanel.setPreferredSize(new Dimension(320, 0)); 
         recordPanel.setBorder(BorderFactory.createCompoundBorder(
             BorderFactory.createMatteBorder(0, 2, 0, 0, Color.decode("#C0C0C0")),
             BorderFactory.createEmptyBorder(15, 15, 15, 15)
         ));
-        recordPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
-
-        // Title label
+        
+        // Title label with proper alignment
         recordTitle = new JLabel("View a Service");
         recordTitle.setFont(new Font("Segoe UI", Font.BOLD, 20));
         recordTitle.setForeground(Color.decode("#192F8F"));
         recordTitle.setAlignmentX(Component.LEFT_ALIGNMENT);
+        
+        // Center the title horizontally
+        JPanel titlePanel = new JPanel();
+        titlePanel.setLayout(new BoxLayout(titlePanel, BoxLayout.X_AXIS));
+        titlePanel.setOpaque(false);
+        titlePanel.add(Box.createHorizontalGlue());
+        titlePanel.add(recordTitle);
+        titlePanel.add(Box.createHorizontalGlue());
+        titlePanel.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-        // Fields container
+        // Fields container with consistent alignment
         JPanel fieldsContainer = new JPanel();
         fieldsContainer.setLayout(new BoxLayout(fieldsContainer, BoxLayout.Y_AXIS));
         fieldsContainer.setOpaque(false);
         fieldsContainer.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-        Dimension fieldSize = new Dimension(220, 28);
+        Dimension fieldSize = new Dimension(270, 28); // Wider text fields
 
         String[] fieldLabels = {"Service Name:", "Description:", "Starting Price:", "Status:"};
         for (String label : fieldLabels) {
@@ -296,7 +304,8 @@ public class ServicesDisplay extends JFrame {
             if (label.equals("Status:")) {
                 statusComboBox = new JComboBox<>(new String[]{"Available", "Unavailable"});
                 statusComboBox.setFont(new Font("Segoe UI", Font.PLAIN, 13));
-                statusComboBox.setMaximumSize(new Dimension(450, 30));
+                statusComboBox.setMaximumSize(fieldSize);
+                statusComboBox.setPreferredSize(fieldSize);
                 statusComboBox.setAlignmentX(Component.LEFT_ALIGNMENT);
                 statusComboBox.setBackground(Color.WHITE);
                 statusComboBox.setBorder(BorderFactory.createLineBorder(Color.decode("#C0C0C0")));
@@ -304,9 +313,8 @@ public class ServicesDisplay extends JFrame {
             } else {
                 JTextField textField = new JTextField();
                 textField.setFont(new Font("Segoe UI", Font.PLAIN, 13));
-                textField.setMaximumSize(new Dimension(450, 30));
+                textField.setMaximumSize(fieldSize);
                 textField.setPreferredSize(fieldSize);
-                textField.setMinimumSize(fieldSize);
                 textField.setAlignmentX(Component.LEFT_ALIGNMENT);
                 textField.setBackground(Color.WHITE);
                 textField.setBorder(BorderFactory.createLineBorder(Color.decode("#C0C0C0")));
@@ -317,48 +325,49 @@ public class ServicesDisplay extends JFrame {
             fieldsContainer.add(Box.createVerticalStrut(12));
         }
 
-        // Save/Cancel button panel
+        // Create a properly centered button panel
         JPanel buttonPanel = createButtonContainer();
         buttonPanel.setVisible(false); // Initially hidden
+        buttonPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
         this.saveButtonPanel = buttonPanel;
 
         // Add components to record panel
-        recordPanel.add(recordTitle);
+        recordPanel.add(titlePanel);
         recordPanel.add(Box.createVerticalStrut(15));
         recordPanel.add(fieldsContainer);
-        recordPanel.add(buttonPanel); // Add button panel below fields
-        recordPanel.add(Box.createVerticalGlue()); // Pushes everything up
+        recordPanel.add(buttonPanel);
+        recordPanel.add(Box.createVerticalGlue());
 
-        // Set fields to read-only by default
         setFieldsEditable(false);
 
-        JPanel rightPanel = new JPanel(new BorderLayout());
-        rightPanel.setPreferredSize(new Dimension(300, 300));
-        rightPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
-        rightPanel.add(recordPanel);
-        rightPanel.setOpaque(false);
-
-        return rightPanel;
+        return recordPanel;
     }
 
+    // Fix the button container to center buttons properly
     private JPanel createButtonContainer() {
-        JPanel buttonContainer = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 0));
+        JPanel buttonContainer = new JPanel();
+        buttonContainer.setLayout(new BoxLayout(buttonContainer, BoxLayout.X_AXIS));
         buttonContainer.setOpaque(false);
+        buttonContainer.add(Box.createHorizontalGlue());
+        
+        JPanel innerButtonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 0));
+        innerButtonPanel.setOpaque(false);
 
         JButton saveBtn = makeButton("Save");
         JButton cancelBtn = makeButton("Cancel");
-
-        saveBtn.addActionListener(e -> saveService()
-
-        );
+        
+        saveBtn.addActionListener(e -> saveService());
         cancelBtn.addActionListener(e -> cancelEdit());
 
         saveBtn.setBackground(Color.decode("#007bff"));
         cancelBtn.setBackground(Color.decode("#6c757d"));
 
-        buttonContainer.add(saveBtn);
-        buttonContainer.add(cancelBtn);
-
+        innerButtonPanel.add(saveBtn);
+        innerButtonPanel.add(cancelBtn);
+        
+        buttonContainer.add(innerButtonPanel);
+        buttonContainer.add(Box.createHorizontalGlue());
+        
         return buttonContainer;
     }
 
