@@ -36,7 +36,7 @@ public class AccountManagement extends JFrame {
     private AccountManagementDAO accountDAO;
     
     // Store account IDs for each row (for deletion)
-    private List<Integer> accountIds;
+    private List<String> accountIds;
 
     private boolean isInitialized = false;
 
@@ -455,8 +455,8 @@ public class AccountManagement extends JFrame {
     }
 
     private void deleteAccount(int row) {
-        try{
-            if(row < 0 || row >= table.getRowCount()) {
+        try {
+            if (row < 0 || row >= table.getRowCount()) {
                 JOptionPane.showMessageDialog(this,
                     "Invalid row selected for deletion.",
                     "Delete Error",
@@ -464,13 +464,16 @@ public class AccountManagement extends JFrame {
                 return;
             }
 
+            // Get account info for confirmation dialog
+            String accountId = accountIds.get(row);
             String firstName = table.getValueAt(row, 1).toString();
             String lastName = table.getValueAt(row, 3).toString();
             String email = table.getValueAt(row, 5).toString();
 
             int confirm = JOptionPane.showConfirmDialog(
                 this,
-                "Are you sure you want to delete this record?\n\n"+
+                "Are you sure you want to delete this record?\n\n" +
+                "User ID: " + accountId + "\n" +
                 "Name: " + firstName + " " + lastName + "\n" +
                 "Email: " + email + "\n\n" +
                 "This action cannot be undone.",
@@ -480,31 +483,24 @@ public class AccountManagement extends JFrame {
             );
 
             if (confirm == JOptionPane.YES_OPTION) {
-                // Get the account ID for this row
-                int accountId = accountIds.get(row);
-
-                // Delete from database
                 boolean success = accountDAO.deleteAccount(accountId);
-                
-                setCursor(Cursor.getDefaultCursor());
-                    
+
                 if (success) {
-                    // Remove from table and ID list
                     tableModel.removeRow(row);
                     accountIds.remove(row);
                     clearSidebarFields();
-                    JOptionPane.showMessageDialog(this, 
-                        "Account deleted successfully!", 
-                        "Success", 
+                    JOptionPane.showMessageDialog(this,
+                        "Account deleted successfully!",
+                        "Success",
                         JOptionPane.INFORMATION_MESSAGE);
                 } else {
-                    JOptionPane.showMessageDialog(this, 
-                        "Failed to delete account from database!", 
-                        "Error", 
+                    JOptionPane.showMessageDialog(this,
+                        "Failed to delete account from database!",
+                        "Error",
                         JOptionPane.ERROR_MESSAGE);
                 }
             }
-        }catch (Exception ex){
+        } catch (Exception ex) {
             setCursor(Cursor.getDefaultCursor());
             JOptionPane.showMessageDialog(this,
                 "Error deleting account: " + ex.getMessage(),

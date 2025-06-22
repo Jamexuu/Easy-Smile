@@ -29,6 +29,8 @@ public class CalendarPanel extends JPanel {
 
         // Create the calendar table
         createCalendarTable();
+
+        populateCalendar();
     }
 
     private void createNavigationPanel() {
@@ -50,6 +52,7 @@ public class CalendarPanel extends JPanel {
             public void actionPerformed(ActionEvent e) {
                 currentCalendar.add(Calendar.MONTH, -1);
                 updateMonthYearLabel();
+                populateCalendar();
             }
         });
 
@@ -58,6 +61,7 @@ public class CalendarPanel extends JPanel {
             public void actionPerformed(ActionEvent e) {
                 currentCalendar.add(Calendar.MONTH, 1);
                 updateMonthYearLabel();
+                populateCalendar();
             }
         });
 
@@ -95,6 +99,23 @@ public class CalendarPanel extends JPanel {
         // Add the table to a scroll pane
         JScrollPane scrollPane = new JScrollPane(calendarTable);
         add(scrollPane, BorderLayout.CENTER);
+
+        calendarTable.addMouseListener(new java.awt.event.MouseAdapter() {
+        @Override
+            public void mouseClicked(java.awt.event.MouseEvent e) {
+                int row = calendarTable.rowAtPoint(e.getPoint());
+                int col = calendarTable.columnAtPoint(e.getPoint());
+                Object value = calendarTable.getValueAt(row, col);
+                if (value instanceof DayCell) {
+                    DayCell dayCell = (DayCell) value;
+                    // Notify parent frame
+                    JFrame topFrame = (JFrame) SwingUtilities.getWindowAncestor(CalendarPanel.this);
+                    if (topFrame instanceof Frames.AppointmentManagementFrame) {
+                        ((Frames.AppointmentManagementFrame) topFrame).showAppointmentsForDay(dayCell.getAppointments());
+                    }
+                }
+            }
+        });
     }
 
     private void updateMonthYearLabel() {
@@ -102,7 +123,6 @@ public class CalendarPanel extends JPanel {
         monthYearLabel.setText(sdf.format(currentCalendar.getTime()));
     }
 
-    // Custom renderer for calendar cells
     private class CalendarCellRenderer extends DefaultTableCellRenderer {
         @Override
         public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected,
@@ -139,10 +159,8 @@ public class CalendarPanel extends JPanel {
                     int count = Math.min(dayCell.getAppointments().size(), 3);
                     for (int i = 0; i < count; i++) {
                         Object[] appointment = dayCell.getAppointments().get(i);
-                        String patientName = (String) appointment[1];
-                        String time = ((String) appointment[3]).substring(11, 16); // HH:MM
-
-                        JLabel apptLabel = new JLabel(time + " - " + patientName);
+                        // appointment[3] is the display string
+                        JLabel apptLabel = new JLabel("<html>" + appointment[3] + "</html>");
                         apptLabel.setFont(new Font("Arial", Font.PLAIN, 10));
                         appointmentsPanel.add(apptLabel);
                     }
@@ -163,12 +181,11 @@ public class CalendarPanel extends JPanel {
     }
 
     // Helper class to store day information and appointments
-     private static class DayCell {
+    private static class DayCell {
         private int day;
         private Date date;
         private List<Object[]> appointments;
 
-        @SuppressWarnings("unused")
         public DayCell(int day, Date date, List<Object[]> appointments) {
             this.day = day;
             this.date = date;
@@ -190,6 +207,81 @@ public class CalendarPanel extends JPanel {
         @SuppressWarnings("unused")
         public void addAppointment(Object[] appointment) {
             appointments.add(appointment);
+        }
+    }
+
+    private List<DAO.AppointmentDAO.Appointment> getAppointmentsForMonth(int year, int month) {
+        List<DAO.AppointmentDAO.Appointment> appointments = new ArrayList<>();
+        try {
+            String startDate = String.format("%04d-%02d-01", year, month + 1);
+            Calendar cal = Calendar.getInstance();
+            cal.set(year, month, 1);
+            int lastDay = cal.getActualMaximum(Calendar.DAY_OF_MONTH);
+            String endDate = String.format("%04d-%02d-%02d", year, month + 1, lastDay);
+
+            DAO.AppointmentDAO dao = new DAO.AppointmentDAO();
+            appointments = dao.getAppointmentsByDateRange(startDate, endDate);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return appointments;
+    }
+
+    private void populateCalendar() {
+        // Clear previous data
+        for (int row = 0; row < 6; row++) {
+            for (int col = 0; col < 7; col++) {
+                calendarModel.setValueAt(null, row, col);
+            }
+        }
+
+        Calendar cal = (Calendar) currentCalendar.clone();
+        cal.set(Calendar.DAY_OF_MONTH, 1);
+
+        int firstDayOfWeek = cal.get(Calendar.DAY_OF_WEEK) - 1; // 0-based (Sunday = 0)
+        int daysInMonth = cal.getActualMaximum(Calendar.DAY_OF_MONTH);
+
+        // Fetch all appointments for this month
+        int year = cal.get(Calendar.YEAR);
+        int month = cal.get(Calendar.MONTH);
+        List<DAO.AppointmentDAO.Appointment> monthAppointments = getAppointmentsForMonth(year, month);
+
+        int row = 0, col = firstDayOfWeek;
+        for (int day = 1; day <= daysInMonth; day++) {
+            cal.set(Calendar.DAY_OF_MONTH, day);
+            Date date = cal.getTime();
+            String dateStr = String.format("%04d-%02d-%02d", year, month + 1, day);
+
+            // Filter appointments for this date
+            List<Object[]> appointments = new ArrayList<>();
+            for (DAO.AppointmentDAO.Appointment appt : monthAppointments) {
+                if (dateStr.equals(appt.getAppointmentDate())) {
+                    // Format time to 12-hour with AM/PM
+                    String time = appt.getAppointmentTime();
+                    String formattedTime = "";
+                    try {
+                        java.text.SimpleDateFormat sdf24 = new java.text.SimpleDateFormat("HH:mm:ss");
+                        java.text.SimpleDateFormat sdf12 = new java.text.SimpleDateFormat("h:mma");
+                        formattedTime = sdf12.format(sdf24.parse(time)).toLowerCase();
+                    } catch (Exception ex) {
+                        formattedTime = time;
+                    }
+                    // You may need to fetch ServiceDesc from ServiceDAO if not present in Appointment
+                    String serviceDesc = appt.getServiceId(); // Replace with actual service description if available
+                    String display = appt.getAppointmentId().toUpperCase() + "<br>" + formattedTime + " - " + serviceDesc;
+                    String status = appt.getStatus();
+                    appointments.add(new Object[]{appt.getAppointmentId(), serviceDesc, formattedTime, display, status});
+                }
+            }
+
+            DayCell dayCell = new DayCell(day, date, appointments);
+            calendarModel.setValueAt(dayCell, row, col);
+
+            col++;
+            if (col > 6) {
+                col = 0;
+                row++;
+            }
         }
     }
 

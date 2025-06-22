@@ -15,7 +15,7 @@ public class ServicesDAO {
     // Inner class for Service entity
     public static class Service {
         private int internalId;
-        private String serviceId; // Formatted ID like "ser-1000000"
+        private String serviceId;
         private String serviceName;
         private String serviceDesc;
         private double startingPrice;
@@ -34,7 +34,7 @@ public class ServicesDAO {
             this.startingPrice = startingPrice;
             this.status = status;
             // Generate formatted service ID
-            this.serviceId = formatId("ser-", 1000000, internalId);
+            this.serviceId = formatId("SER-", 1000000, internalId);
         }
 
         // Getters and Setters
@@ -85,7 +85,7 @@ public class ServicesDAO {
         service.setInternalId(rs.getInt("InternalID"));
         service.setServiceId(rs.getString("ServiceID"));
         service.setServiceName(rs.getString("ServiceName"));
-        service.setServiceDesc(rs.getString("ServicDesc"));
+        service.setServiceDesc(rs.getString("ServiceDesc"));
         service.setStartingPrice(rs.getDouble("StartingPrice"));
         service.setStatus(rs.getString("Status"));
         service.setCreatedAt(rs.getString("created_at"));
@@ -127,16 +127,15 @@ public class ServicesDAO {
         return null;
     }
 
-    // Get service by formatted ID (e.g., "ser-1000000")
-    public Service getServiceByFormattedId(String formattedId) throws SQLException {
+    public Service getServiceByFormattedId(String formattedID) throws SQLException {
         String sql = "SELECT * FROM ServicesTbl WHERE ServiceID = ?";
 
         try (Connection conn = DBConnector.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
-            
-            stmt.setString(1, formattedId);
-            
-            try (ResultSet rs = stmt.executeQuery()) {
+
+            stmt.setString(1, formattedID);
+
+            try (ResultSet rs = stmt.executeQuery()) {  
                 if (rs.next()) {
                     return createServiceFromResultSet(rs);
                 }

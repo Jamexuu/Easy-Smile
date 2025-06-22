@@ -1,6 +1,8 @@
 package Frames;
 
 import javax.swing.*;
+import javax.swing.border.Border;
+import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableCellEditor;
@@ -13,6 +15,8 @@ import Frames.CalendarPanel;
 
 import DAO.AppointmentDAO;
 import DAO.AppointmentDAO.Appointment;
+import DAO.ServicesDAO;
+import DAO.AccountManagementDAO;
 import DAO.PatientDAO;
 
 public class AppointmentManagementFrame extends JFrame {
@@ -28,6 +32,8 @@ public class AppointmentManagementFrame extends JFrame {
     // DAO and Data
     private AppointmentDAO appointmentDAO; // Fixed: Changed variable name to lowercase
     private PatientDAO patientDAO; // Added for patient data lookup
+    private ServicesDAO servicesDAO = new ServicesDAO();
+    private AccountManagementDAO accountDAO = new AccountManagementDAO();
     private List<Integer> appointmentIds;
     private java.util.Map<String, JTextField> fieldInputs;
     
@@ -41,11 +47,28 @@ public class AppointmentManagementFrame extends JFrame {
     private JTextField searchBar;
     private List<JTextField> sidebarFields;
 
+    private JButton saveButton;
+    private JButton cancelButton;
+    private boolean editMode = false;
+    private int currentEditingRow = -1;
+
+    //appointment status
+    private JComboBox<String> statusComboBox;
+    private JLabel createdAtLabel;
+    private JLabel updatedAtLabel;
+
+    private JLabel statusValueLabel;
+
     private boolean isInitialized = false; 
-    
+
+    private JPanel sidebarPanel;
+        
     public AppointmentManagementFrame() {
         appointmentDAO = new AppointmentDAO(); // Fixed: Changed to lowercase
         patientDAO = new PatientDAO(); // Added for patient lookup
+        servicesDAO = new ServicesDAO();
+        accountDAO = new AccountManagementDAO();
+        patientDAO = new PatientDAO();
         appointmentIds = new ArrayList<>();
         fieldInputs = new java.util.HashMap<>();
         sidebarFields = new ArrayList<>();
@@ -204,64 +227,103 @@ public class AppointmentManagementFrame extends JFrame {
         contentPanel.setBackground(Color.WHITE);
         contentPanel.setOpaque(true);
         
-        contentPanel.add(createTabsPanel(), BorderLayout.CENTER);
-        contentPanel.add(createSidebarPanel(), BorderLayout.EAST);
+        JTabbedPane appointmentTabs = createTabsPanel();
+        contentPanel.add(appointmentTabs, BorderLayout.CENTER);
+
+        sidebarPanel = createSidebarPanel();
+        contentPanel.add(sidebarPanel, BorderLayout.EAST);
+
+        appointmentTabs.addChangeListener(e -> {
+            int selectedIndex = appointmentTabs.getSelectedIndex();
+            String selectedTitle = appointmentTabs.getTitleAt(selectedIndex);
+            if ("CALENDAR".equalsIgnoreCase(selectedTitle)) {
+                if (sidebarPanel != null) {
+                    sidebarPanel.removeAll();
+                    sidebarPanel.revalidate();
+                    sidebarPanel.repaint();
+                }
+            } else {
+                sidebarPanel.removeAll();
+                createSidebarFields(sidebarPanel);
+                sidebarPanel.revalidate();
+                sidebarPanel.repaint();
+            }
+        });
         
         return contentPanel;
     }
     
-    private JPanel createTabsPanel() {
+    private JTabbedPane createTabsPanel() {
         JTabbedPane appointmentTabs = new JTabbedPane();
 
         // Create table models - Updated column names to match actual data
-        String[] appointmentColumns = {"Appointment ID", "Patient ID", "Service ID", "Date", "Time", "Scheduled By", "Actions"};
+        String[] appointmentColumns = {"Appointment ID", "Patient Full Name", "Service Desc.", "Date", "Time", "Email", "Status", "Actions"};
+        String[] statusOptions = {"Upcoming", "Completed", "Canceled"};
 
         upcomingModel = new DefaultTableModel(appointmentColumns, 0) {
             @Override
             public boolean isCellEditable(int row, int column) {
-                return column == 6; // Actions only
+                // Allow editing for Status (6) and Actions (7) columns
+                return column == 6 || column == 7;
             }
         };
-
         completedModel = new DefaultTableModel(appointmentColumns, 0) {
             @Override
             public boolean isCellEditable(int row, int column) {
-                return column == 6; // Actions only
+                return column == 7;
             }
         };
-
         canceledModel = new DefaultTableModel(appointmentColumns, 0) {
             @Override
             public boolean isCellEditable(int row, int column) {
-                return column == 6; // Actions only
+                return column == 7;
             }
         };
+
+        upcomingModel.addTableModelListener(e -> {
+            if (e.getType() == javax.swing.event.TableModelEvent.UPDATE && e.getColumn() == 6) {
+                int row = e.getFirstRow();
+                String appointmentId = (String) upcomingModel.getValueAt(row, 0);
+                String newStatus = (String) upcomingModel.getValueAt(row, 6);
+                // Update the status in the database
+                try {
+                    int internalId = appointmentIds.get(row);
+                    Appointment appointment = appointmentDAO.getAppointmentById(internalId);
+                    if (appointment != null) {
+                        appointment.setStatus(newStatus);
+                        appointmentDAO.updateAppointment(appointment);
+                        loadData(); // Refresh tables to move row if needed
+                    }
+                } catch (Exception ex) {
+                    JOptionPane.showMessageDialog(this, "Failed to update status: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+                }
+            }
+        });
 
         // Create tables
         upcomingTable = createTable(upcomingModel);
         completedTable = createTable(completedModel);
         canceledTable = createTable(canceledModel);
 
+        upcomingTable.getColumnModel().getColumn(6).setCellEditor(new DefaultCellEditor(new JComboBox<>(statusOptions)));
+
         // Set up renderers and editors
-        setupTableActionsColumn(upcomingTable, 6);
-        setupTableActionsColumn(completedTable, 6);
-        setupTableActionsColumn(canceledTable, 6);
+        setupTableActionsColumn(upcomingTable, 7, "edit");
+        setupTableActionsColumn(completedTable, 7, "delete");
+        setupTableActionsColumn(canceledTable, 7, "delete");
 
         // Add tables to tabs
-        appointmentTabs.addTab("ALL APPOINTMENTS", new JScrollPane(upcomingTable));
+        appointmentTabs.addTab("UPCOMING", new JScrollPane(upcomingTable));
         appointmentTabs.addTab("COMPLETED", new JScrollPane(completedTable));
         appointmentTabs.addTab("CANCELED", new JScrollPane(canceledTable));
+        appointmentTabs.addTab("CALENDAR", new CalendarPanel());
 
-        // --- Add the Calendar tab here ---
-        CalendarPanel calendarPanel = new CalendarPanel();
-        appointmentTabs.addTab("CALENDAR", calendarPanel);
+        // JPanel tabsPanel = new JPanel(new BorderLayout());
+        // tabsPanel.setOpaque(false);
+        // tabsPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 5));
+        // tabsPanel.add(appointmentTabs, BorderLayout.CENTER);
 
-        JPanel tabsPanel = new JPanel(new BorderLayout());
-        tabsPanel.setOpaque(false);
-        tabsPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 5));
-        tabsPanel.add(appointmentTabs, BorderLayout.CENTER);
-
-        return tabsPanel;
+        return appointmentTabs;
     }
     
     private JTable createTable(DefaultTableModel model) {
@@ -277,16 +339,47 @@ public class AppointmentManagementFrame extends JFrame {
         table.getColumnModel().getColumn(0).setMaxWidth(0);
         table.getColumnModel().getColumn(0).setPreferredWidth(0);
         
+        table.getColumnModel().getColumn(6).setCellRenderer(new DefaultTableCellRenderer() {
+        @Override
+        public Component getTableCellRendererComponent(JTable table, Object value, 
+                boolean isSelected, boolean hasFocus, int row, int column) {
+            Component comp = super.getTableCellRendererComponent(
+                table, value, isSelected, hasFocus, row, column);
+            
+            if (value != null) {
+                String status = value.toString();
+                if (status.equalsIgnoreCase("Completed")) {
+                    setBackground(new Color(220, 255, 220)); // Light green
+                    setForeground(new Color(0, 100, 0));     // Dark green
+                } else if (status.equalsIgnoreCase("Canceled")) {
+                    setBackground(new Color(255, 220, 220)); // Light red
+                    setForeground(new Color(150, 0, 0));     // Dark red
+                } else if (status.equalsIgnoreCase("Upcoming")) {
+                    setBackground(new Color(220, 220, 255)); // Light blue
+                    setForeground(new Color(0, 0, 150));     // Dark blue
+                } else {
+                    setBackground(isSelected ? table.getSelectionBackground() : table.getBackground());
+                    setForeground(isSelected ? table.getSelectionForeground() : table.getForeground());
+                }
+            }
+            return comp;
+        }
+    });
         return table;
     }
     
-    private void setupTableActionsColumn(JTable table, int actionsColumn) {
-        table.getColumn("Actions").setCellRenderer(new ActionsRenderer());
-        table.getColumn("Actions").setCellEditor(new ActionsEditor(table, sidebarFields));
+    private void setupTableActionsColumn(JTable table, int actionsColumn, String type) {
+        if ("delete".equals(type)) {
+            table.getColumn("Actions").setCellRenderer(new DeleteActionsRenderer());
+            table.getColumn("Actions").setCellEditor(new DeleteActionsEditor(table, sidebarFields));
+        } else {
+            table.getColumn("Actions").setCellRenderer(new ActionsRenderer());
+            table.getColumn("Actions").setCellEditor(new ActionsEditor(table, sidebarFields));
+        }
     }
     
     private JPanel createSidebarPanel() {
-        JPanel sidebarPanel = new JPanel();
+        sidebarPanel = new JPanel();
         sidebarPanel.setLayout(new BoxLayout(sidebarPanel, BoxLayout.Y_AXIS));
         sidebarPanel.setBackground(SIDEBAR_COLOR);
         sidebarPanel.setPreferredSize(new Dimension(260, 0));
@@ -304,6 +397,35 @@ public class AppointmentManagementFrame extends JFrame {
         sidebarPanel.add(Box.createVerticalStrut(15));
         
         createSidebarFields(sidebarPanel);
+
+        // Add save/cancel buttons
+        JPanel buttonPanel = new JPanel();
+        buttonPanel.setLayout(new FlowLayout(FlowLayout.LEFT, 5, 0));
+        buttonPanel.setOpaque(false);
+        buttonPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
+        buttonPanel.setMaximumSize(new Dimension(400, 40));
+        
+        saveButton = new JButton("Save Changes");
+        saveButton.setFont(BTN_FONT);
+        saveButton.setBackground(BLUE_COLOR);
+        saveButton.setForeground(Color.WHITE);
+        saveButton.setFocusPainted(false);
+        saveButton.addActionListener(this::saveAppointmentChanges);
+        saveButton.setVisible(false); // Initially hidden
+        
+        cancelButton = new JButton("Cancel");
+        cancelButton.setFont(BTN_FONT);
+        cancelButton.setBackground(Color.LIGHT_GRAY);
+        cancelButton.setForeground(Color.BLACK);
+        cancelButton.setFocusPainted(false);
+        cancelButton.addActionListener(this::cancelEdit);
+        cancelButton.setVisible(false); // Initially hidden
+        
+        buttonPanel.add(saveButton);
+        buttonPanel.add(cancelButton);
+        
+        sidebarPanel.add(Box.createVerticalStrut(10));
+        sidebarPanel.add(buttonPanel);
         
         return sidebarPanel;
     }
@@ -312,13 +434,11 @@ public class AppointmentManagementFrame extends JFrame {
         // Updated to match appointment data structure
         String[] fieldLabels = {
             "Appointment ID:", 
-            "Patient ID:", 
-            "Service ID:", 
-            "Scheduled By:", 
+            "Patient Full Name:", 
+            "Service Description:", 
+            "Email:", 
             "Appointment Date:", 
             "Appointment Time:", 
-            "Created At:", 
-            "Updated At:"
         };
 
         for (String label : fieldLabels) {
@@ -346,6 +466,71 @@ public class AppointmentManagementFrame extends JFrame {
             parent.add(fieldPanel);
             parent.add(Box.createVerticalStrut(8));
         }
+
+         // Add status dropdown
+        JPanel statusPanel = new JPanel();
+        statusPanel.setLayout(new BoxLayout(statusPanel, BoxLayout.Y_AXIS));
+        statusPanel.setOpaque(false);
+        statusPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
+        
+        JLabel statusLabel = new JLabel("Status:");
+        statusLabel.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        statusLabel.setForeground(Color.decode("#192F8F"));
+
+        JPanel comboWrapper = new JPanel();
+        comboWrapper.setLayout(new BoxLayout(comboWrapper, BoxLayout.X_AXIS));
+        comboWrapper.setMaximumSize(new Dimension(400, 26));
+        comboWrapper.setPreferredSize(new Dimension(400, 26));
+        comboWrapper.setOpaque(false);
+        comboWrapper.setAlignmentX(Component.LEFT_ALIGNMENT);
+        
+        JLabel statusValueLabel = new JLabel("N/A");
+        statusValueLabel.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        statusValueLabel.setForeground(Color.BLACK);
+        statusValueLabel.setBorder(BorderFactory.createLineBorder(Color.decode("#C0C0C0")));
+        statusValueLabel.setOpaque(true);
+        statusValueLabel.setBackground(Color.WHITE);
+
+        statusPanel.add(statusLabel);
+        statusPanel.add(Box.createVerticalStrut(3));
+        statusPanel.add(statusValueLabel);
+
+        parent.add(statusPanel);
+        parent.add(Box.createVerticalStrut(8));
+
+        // Store reference for updating later
+        this.statusValueLabel = statusValueLabel;
+
+        // Add Created At and Updated At as labels
+        addReadonlyField(parent, "Created At:", "createdAt");
+        addReadonlyField(parent, "Updated At:", "updatedAt");
+    }
+
+    // Helper method for read-only fields
+    private void addReadonlyField(JPanel parent, String labelText, String fieldName) {
+        JPanel panel = new JPanel();
+        panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+        panel.setOpaque(false);
+        
+        JLabel textLabel = new JLabel(labelText);
+        textLabel.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        textLabel.setForeground(Color.decode("#192F8F"));
+        
+        JLabel valueLabel = new JLabel("N/A");
+        valueLabel.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        valueLabel.setForeground(Color.BLACK);
+        valueLabel.setBorder(BorderFactory.createEmptyBorder(5, 0, 5, 0));
+        
+        if (fieldName.equals("createdAt")) {
+            createdAtLabel = valueLabel;
+        } else {
+            updatedAtLabel = valueLabel;
+        }
+        
+        panel.add(textLabel);
+        panel.add(valueLabel);
+        parent.add(panel);
+        parent.add(Box.createVerticalStrut(8));
     }
 
     private JButton createStyledButton(String text) {
@@ -385,22 +570,58 @@ public class AppointmentManagementFrame extends JFrame {
         appointmentIds.clear();
         
         for (Appointment appointment : appointments) {
-            // Fixed: Updated to use actual appointment data structure
+            // Fetch patient full name
+            String patientFullName = "";
+            try {
+                var patient = patientDAO.getPatientByFormattedId(appointment.getPatientId());
+                if (patient != null) {
+                    patientFullName = patient.getFullName();
+                }
+            } catch (Exception ex) {
+                patientFullName = appointment.getPatientId();
+            }
+
+            String serviceDesc = appointment.getServiceId();
+            try {
+                var service = servicesDAO.getServiceByFormattedId(appointment.getServiceId());
+                if (service != null && service.getServiceDesc() != null) {
+                    serviceDesc = service.getServiceDesc();
+                }
+            } catch (Exception ex) {
+                serviceDesc = appointment.getServiceId();
+            }
+
+            // Fetch scheduled by email
+            String email = "";
+            try {
+                var account = accountDAO.getAccountByFormattedId(appointment.getScheduledBy());
+                if (account != null && account.getEmail() != null) {
+                    email = account.getEmail();
+                }
+            } catch (Exception ex) {
+                email = appointment.getScheduledBy();
+            }
+
             Object[] rowData = {
-                appointment.getAppointmentId(),    // Hidden column
-                appointment.getPatientId(),
-                appointment.getServiceId(),
+                appointment.getAppointmentId(),
+                patientFullName,
+                serviceDesc,
                 appointment.getAppointmentDate(),
                 appointment.getAppointmentTime(),
-                appointment.getScheduledBy(),
+                email,
+                appointment.getStatus(),
                 "Actions"
             };
-            
-            appointmentIds.add(appointment.getInternalId()); // Fixed: Use getInternalId()
-            
-            // For now, add all appointments to the main tab
-            // Later you can implement status-based filtering
-            upcomingModel.addRow(rowData);
+            appointmentIds.add(appointment.getInternalId());
+
+            String status = appointment.getStatus();
+            if ("Upcoming".equalsIgnoreCase(status)) {
+                upcomingModel.addRow(rowData);
+            } else if ("Completed".equalsIgnoreCase(status)) {
+                completedModel.addRow(rowData);
+            } else if ("Canceled".equalsIgnoreCase(status)) {
+                canceledModel.addRow(rowData);
+            }
         }
     }
     
@@ -450,37 +671,66 @@ public class AppointmentManagementFrame extends JFrame {
     
     private void viewAppointment(int row) {
         try {
+            if (editMode) setEditMode(false);
+
             if (row >= 0 && row < appointmentIds.size()) {
                 int appointmentInternalId = appointmentIds.get(row);
                 Appointment appointment = appointmentDAO.getAppointmentById(appointmentInternalId);
-                
+
+                // Fetch patient full name
+                String patientFullName = "";
+                try {
+                    var patient = patientDAO.getPatientByFormattedId(appointment.getPatientId());
+                    if (patient != null) {
+                        patientFullName = patient.getFullName();
+                    }
+                } catch (Exception ex) {
+                    patientFullName = appointment.getPatientId();
+                }
+
+                // Fetch service description
+                String serviceDesc = appointment.getServiceId();
+                try {
+                    var service = servicesDAO.getServiceByFormattedId(appointment.getServiceId());
+                    if (service != null && service.getServiceDesc() != null) {
+                        serviceDesc = service.getServiceDesc();
+                    }
+                } catch (Exception ex) {
+                    serviceDesc = appointment.getServiceId();
+                }
+
+                String email = appointment.getScheduledBy();
+                try {
+                    var account = accountDAO.getAccountByFormattedId(appointment.getScheduledBy());
+                    if (account != null && account.getEmail() != null) {
+                        email = account.getEmail();
+                    }
+                } catch (Exception ex) {
+                    email = appointment.getScheduledBy();
+                }
+
                 if (appointment != null) {
-                    // Updated to display appointment data instead of patient data
                     fieldInputs.get("Appointment ID:").setText(appointment.getAppointmentId() != null ? appointment.getAppointmentId() : "");
-                    fieldInputs.get("Patient ID:").setText(appointment.getPatientId() != null ? appointment.getPatientId() : "");
-                    fieldInputs.get("Service ID:").setText(appointment.getServiceId() != null ? appointment.getServiceId() : "");
-                    fieldInputs.get("Scheduled By:").setText(appointment.getScheduledBy() != null ? appointment.getScheduledBy() : "");
+                    fieldInputs.get("Patient Full Name:").setText(patientFullName);
+                    fieldInputs.get("Service Description:").setText(serviceDesc);
+                    fieldInputs.get("Email:").setText(email);
                     fieldInputs.get("Appointment Date:").setText(appointment.getAppointmentDate() != null ? appointment.getAppointmentDate() : "");
                     fieldInputs.get("Appointment Time:").setText(appointment.getAppointmentTime() != null ? appointment.getAppointmentTime() : "");
-                    fieldInputs.get("Created At:").setText(appointment.getCreatedAt() != null ? appointment.getCreatedAt() : "N/A");
-                    fieldInputs.get("Updated At:").setText(appointment.getUpdatedAt() != null ? appointment.getUpdatedAt() : "N/A");
-                    
-                    // Optional: Show a success message
-                    // JOptionPane.showMessageDialog(this, "Appointment details loaded successfully!", "View Appointment", JOptionPane.INFORMATION_MESSAGE);
-                } else {
-                    clearSidebarFields();
-                    JOptionPane.showMessageDialog(this, 
-                        "Appointment not found.", 
-                        "Appointment Not Found", 
-                        JOptionPane.WARNING_MESSAGE);
+
+                    String status = appointment.getStatus();
+                    if (statusValueLabel != null) {
+                        statusValueLabel.setText(status != null ? status : "N/A");
+                    }
+                    createdAtLabel.setText(appointment.getCreatedAt() != null ? appointment.getCreatedAt() : "N/A");
+                    updatedAtLabel.setText(appointment.getUpdatedAt() != null ? appointment.getUpdatedAt() : "N/A");
                 }
             }
-        }catch (Exception e) {
+        } catch (Exception e) {
             clearSidebarFields();
-            JOptionPane.showMessageDialog(this, 
-                "Error viewing appointment: " + e.getMessage(), 
-                "View Error", 
-                JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(this,
+                    "Error viewing appointment: " + e.getMessage(),
+                    "View Error",
+                    JOptionPane.ERROR_MESSAGE);
             e.printStackTrace();
         }
     }
@@ -529,22 +779,24 @@ public class AppointmentManagementFrame extends JFrame {
         for (JTextField field : sidebarFields) {
             field.setText("");
         }
+        if (statusValueLabel != null) {
+            statusValueLabel.setText("N/A");
+        }
+        createdAtLabel.setText("N/A");
+        updatedAtLabel.setText("N/A");
     }
     
     // Inner Classes for Table Actions
     static class ActionsRenderer extends JPanel implements TableCellRenderer {
         private final JButton viewBtn;
-        private final JButton deleteBtn;
 
         public ActionsRenderer() {
             setLayout(new FlowLayout(FlowLayout.CENTER, 3, 0));
             setOpaque(true);
 
             viewBtn = createStyledButton("View");
-            deleteBtn = createStyledButton("Delete");
 
             add(viewBtn);
-            add(deleteBtn);
         }
 
         private static JButton createStyledButton(String text) {
@@ -563,27 +815,59 @@ public class AppointmentManagementFrame extends JFrame {
             if (isSelected) {
                 setBackground(table.getSelectionBackground());
                 viewBtn.setBackground(Color.decode("#0E4A7A"));
-                deleteBtn.setBackground(Color.decode("#0E4A7A"));
             } else {
                 setBackground(table.getBackground());
                 viewBtn.setBackground(BLUE_COLOR);
-                deleteBtn.setBackground(BLUE_COLOR);
             }
             return this;
         }
     }
 
-    static class ActionsEditor extends AbstractCellEditor implements TableCellEditor {
+    // Renderer for Delete actions (View + Delete)
+    static class DeleteActionsRenderer extends JPanel implements TableCellRenderer {
+        private final JButton viewBtn;
+        private final JButton deleteBtn;
+
+        public DeleteActionsRenderer() {
+            setLayout(new FlowLayout(FlowLayout.CENTER, 3, 0));
+            setOpaque(true);
+
+            viewBtn = ActionsRenderer.createStyledButton("View");
+            deleteBtn = ActionsRenderer.createStyledButton("Delete");
+            deleteBtn.setBackground(Color.RED);
+
+            add(viewBtn);
+            add(deleteBtn);
+        }
+
+        @Override
+        public Component getTableCellRendererComponent(JTable table, Object value,
+                boolean isSelected, boolean hasFocus, int row, int column) {
+            if (isSelected) {
+                setBackground(table.getSelectionBackground());
+                viewBtn.setBackground(Color.decode("#0E4A7A"));
+                deleteBtn.setBackground(Color.RED);
+            } else {
+                setBackground(table.getBackground());
+                viewBtn.setBackground(BLUE_COLOR);
+                deleteBtn.setBackground(Color.RED);
+            }
+            return this;
+        }
+    }
+
+    // Editor for Delete actions (View + Delete)
+    static class DeleteActionsEditor extends AbstractCellEditor implements TableCellEditor {
         private JPanel panel;
         private final JTable table;
         private int currentRow;
 
-        public ActionsEditor(JTable table, List<JTextField> sidebarFields) {
+        public DeleteActionsEditor(JTable table, List<JTextField> sidebarFields) {
             this.table = table;
         }
 
         @Override
-        public Component getTableCellEditorComponent(JTable tableParam, Object value, 
+        public Component getTableCellEditorComponent(JTable tableParam, Object value,
                 boolean isSelected, int row, int column) {
             this.currentRow = row;
             panel = new JPanel(new FlowLayout(FlowLayout.CENTER, 3, 0));
@@ -591,6 +875,7 @@ public class AppointmentManagementFrame extends JFrame {
 
             JButton viewBtn = ActionsRenderer.createStyledButton("View");
             JButton deleteBtn = ActionsRenderer.createStyledButton("Delete");
+            deleteBtn.setBackground(Color.RED);
 
             viewBtn.addActionListener(e -> {
                 SwingUtilities.invokeLater(() -> {
@@ -607,6 +892,7 @@ public class AppointmentManagementFrame extends JFrame {
                     AppointmentManagementFrame parent = (AppointmentManagementFrame) SwingUtilities.getWindowAncestor(table);
                     if (parent != null) {
                         parent.deleteAppointment(currentRow);
+                        parent.loadData();
                     }
                     fireEditingStopped();
                 });
@@ -627,13 +913,209 @@ public class AppointmentManagementFrame extends JFrame {
         public boolean isCellEditable(EventObject e) {
             return true;
         }
+
+        @Override
+        public boolean shouldSelectCell(EventObject e) {
+            return false;
+        }
+    }
+
+    static class ActionsEditor extends AbstractCellEditor implements TableCellEditor {
+        private JPanel panel;
+        private final JTable table;
+        private int currentRow;
+
+        public ActionsEditor(JTable table, List<JTextField> sidebarFields) {
+            this.table = table;
+        }
+
+        @Override
+        public Component getTableCellEditorComponent(JTable tableParam, Object value, 
+                boolean isSelected, int row, int column) {
+            this.currentRow = row;
+            panel = new JPanel(new FlowLayout(FlowLayout.CENTER, 3, 0));
+            panel.setOpaque(true);
+
+            JButton viewBtn = ActionsRenderer.createStyledButton("View");
+
+            viewBtn.addActionListener(e -> {
+                SwingUtilities.invokeLater(() -> {
+                    AppointmentManagementFrame parent = (AppointmentManagementFrame) SwingUtilities.getWindowAncestor(table);
+                    if (parent != null) {
+                        parent.viewAppointment(currentRow);
+                    }
+                    fireEditingStopped();
+                });
+            });
+
+
+            panel.add(viewBtn);
+            panel.setBackground(isSelected ? tableParam.getSelectionBackground() : tableParam.getBackground());
+            return panel;
+        }
+
+        @Override
+        public Object getCellEditorValue() {
+            return "Actions";
+        }
+
+        @Override
+        public boolean isCellEditable(EventObject e) {
+            return true;
+        }
         
         @Override
         public boolean shouldSelectCell(EventObject e) {
             return false;
         }
     }
-    
+
+    public void showAppointmentsForDay(List<Object[]> appointments) {
+        clearSidebarFields();
+        if (appointments == null || appointments.isEmpty()) {
+            return;
+        }
+        // Show all appointments in the sidebar as a multi-line label
+        StringBuilder sb = new StringBuilder("<html>");
+        for (Object[] appt : appointments) {
+            // appt[0]=id, appt[1]=serviceDesc, appt[2]=time, appt[3]=display, appt[4]=status (add status if not present)
+            String id = appt[0].toString();
+            String serviceDesc = appt[1].toString();
+            String time = appt[2].toString();
+            String status = appt.length > 4 ? appt[4].toString() : "";
+            sb.append("<b>").append(id).append("</b><br>")
+            .append(time).append(" - ").append(serviceDesc)
+            .append("<br>Status: ").append(status)
+            .append("<br><br>");
+        }
+        sb.append("</html>");
+        // You can use a dedicated JLabel in your sidebar for this, or show in a dialog:
+        JOptionPane.showMessageDialog(this, sb.toString(), "Appointments for Selected Day", JOptionPane.INFORMATION_MESSAGE);
+    }
+
+    private void setEditMode(boolean enabled) {
+        editMode = enabled;
+        
+        // Make appointment ID field always read-only (should not be edited)
+        fieldInputs.get("Appointment ID:").setEditable(false);
+        
+        // Make other fields editable or read-only based on edit mode
+        fieldInputs.get("Patient Full Name:").setEditable(enabled);
+        fieldInputs.get("Service Desc.:").setEditable(enabled);
+        fieldInputs.get("Email:").setEditable(enabled);
+        fieldInputs.get("Appointment Date:").setEditable(enabled);
+        fieldInputs.get("Appointment Time:").setEditable(enabled);
+        
+        statusComboBox.setEnabled(enabled); // Enable status dropdown only in edit mode
+
+        // Change background color to indicate editable state
+        for (JTextField field : sidebarFields) {
+            if (field.isEditable()) {
+                field.setBackground(new Color(255, 255, 220)); // Light yellow for edit mode
+            } else {
+                field.setBackground(Color.WHITE);
+            }
+        }
+        
+        // Show or hide save/cancel buttons based on edit mode
+        if (saveButton != null && cancelButton != null) {
+            saveButton.setVisible(enabled);
+            cancelButton.setVisible(enabled);
+        }
+    }
+
+    private void saveAppointmentChanges(ActionEvent e) {
+        try {
+            // Get the appointment ID from the first field
+            String appointmentId = fieldInputs.get("Appointment ID:").getText();
+            
+            if (appointmentId.isEmpty()) {
+                JOptionPane.showMessageDialog(this, 
+                    "Invalid appointment ID!", 
+                    "Error", 
+                    JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+            
+            // Create appointment object from fields
+            Appointment appointment = new Appointment();
+            appointment.setAppointmentId(appointmentId);
+            appointment.setPatientId(fieldInputs.get("Patient Full Name:").getText());
+            appointment.setServiceId(fieldInputs.get("Service Description:").getText());
+            appointment.setScheduledBy(fieldInputs.get("Email:").getText());
+            appointment.setAppointmentDate(fieldInputs.get("Appointment Date:").getText());
+            appointment.setAppointmentTime(fieldInputs.get("Appointment Time:").getText());
+            appointment.setAppointmentDateTime(
+                appointment.getAppointmentDate() + " " + appointment.getAppointmentTime()
+            );
+            appointment.setStatus(statusComboBox.getSelectedItem().toString());
+            
+            // Set the internal ID
+            if (currentEditingRow >= 0 && currentEditingRow < appointmentIds.size()) {
+                appointment.setInternalId(appointmentIds.get(currentEditingRow));
+            }
+            
+            // Validate appointment data
+            if (appointment.getPatientId().isEmpty() || 
+                appointment.getServiceId().isEmpty() || 
+                appointment.getAppointmentDate().isEmpty() || 
+                appointment.getAppointmentTime().isEmpty()) {
+                
+                JOptionPane.showMessageDialog(this, 
+                    "Patient ID, Service ID, Date and Time are required fields!", 
+                    "Validation Error", 
+                    JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+            
+            // Update appointment in database
+            boolean success = appointmentDAO.updateAppointment(appointment);
+            
+            if (success) {
+                // Exit edit mode
+                setEditMode(false);
+                
+                // Refresh the tables to show updated data
+                loadData();
+                
+                JOptionPane.showMessageDialog(this, 
+                    "Appointment updated successfully!", 
+                    "Success", 
+                    JOptionPane.INFORMATION_MESSAGE);
+            } else {
+                JOptionPane.showMessageDialog(this, 
+                    "Failed to update appointment!", 
+                    "Error", 
+                    JOptionPane.ERROR_MESSAGE);
+            }
+            
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(this, 
+                "Error saving appointment changes: " + ex.getMessage(), 
+                "Save Error", 
+                JOptionPane.ERROR_MESSAGE);
+            ex.printStackTrace();
+        }
+    }
+
+    private void cancelEdit(ActionEvent e) {
+        int confirm = JOptionPane.showConfirmDialog(this,
+            "Are you sure you want to cancel editing? All changes will be lost.",
+            "Confirm Cancel",
+            JOptionPane.YES_NO_OPTION);
+            
+        if (confirm == JOptionPane.YES_OPTION) {
+            setEditMode(false);
+            
+            // Refresh the fields from the table data if there's a selected row
+            if (currentEditingRow >= 0) {
+                viewAppointment(currentEditingRow);
+            } else {
+                clearSidebarFields();
+            }
+        }
+    }
+        
     // Keep the old appointment method for backward compatibility
     public void appointment() {
         initialize();

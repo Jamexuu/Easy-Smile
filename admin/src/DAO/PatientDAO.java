@@ -38,7 +38,7 @@ public class PatientDAO {
             this.gender = gender;
             this.createdBy = createdBy;
             // Generate formatted patient ID
-            this.patientId = formatId("pat-", 1000000, internalId);
+            this.patientId = formatId("PAT-", 1000000, internalId);
         }
 
         // Getters and Setters

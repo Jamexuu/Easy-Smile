@@ -36,7 +36,7 @@ public class ClinicDAO {
             this.facebookLink = facebookLink;
             this.instagramLink = instagramLink;
             // Generate formatted clinic ID
-            this.clinicId = formatId("cli-", 1000000, internalId);
+            this.clinicId = formatId("CLI-", 1000000, internalId);
         }
 
         // Getters and Setters

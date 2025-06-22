@@ -11,7 +11,7 @@ public class AccountManagementDAO {
      * Account model class for data transfer
      */
     public static class Account {
-        private int id;
+        private String id;
         private String firstName;
         private String middleName;
         private String lastName;
@@ -35,8 +35,8 @@ public class AccountManagementDAO {
         }
         
         // Getters and Setters
-        public int getId() { return id; }
-        public void setId(int id) { this.id = id; }
+        public String getId() { return id; }
+        public void setId(String id) { this.id = id; }
         
         public String getFirstName() { return firstName; }
         public void setFirstName(String firstName) { this.firstName = firstName; }
@@ -75,33 +75,33 @@ public class AccountManagementDAO {
     
     // SQL Queries - Updated without address column
     private static final String SELECT_ALL_ACCOUNTS = 
-        "SELECT user_id, first_name, middle_name, last_name, birth_date, email, phone, created_at, updated_at FROM patients_tbl ORDER BY created_at DESC";
+        "SELECT AccountID, FirstName, MiddleName, LastName, BirthDate, email, PhoneNumber, created_at, updated_at FROM patients_tbl ORDER BY created_at DESC";
     
     private static final String SELECT_ACCOUNT_BY_ID = 
-        "SELECT user_id, first_name, middle_name, last_name, birth_date, email, phone, created_at, updated_at FROM patients_tbl WHERE user_id = ?";
+        "SELECT AccountID, FirstName, MiddleName, LastName, BirthDate, email, PhoneNumber, created_at, updated_at FROM patients_tbl WHERE AccountID = ?";
     
     private static final String SELECT_ACCOUNT_BY_EMAIL = 
-        "SELECT user_id, first_name, middle_name, last_name, birth_date, email, phone, created_at, updated_at FROM patients_tbl WHERE email = ?";
+        "SELECT AccountID, FirstName, MiddleName, LastName, BirthDate, email, PhoneNumber, created_at, updated_at FROM patients_tbl WHERE email = ?";
     
     private static final String INSERT_ACCOUNT = 
-        "INSERT INTO patients_tbl (first_name, middle_name, last_name, birth_date, email, phone) VALUES (?, ?, ?, ?, ?, ?)";
+        "INSERT INTO patients_tbl (FirstName, MiddleName, LastName, BirthDate, email, PhoneNumber) VALUES (?, ?, ?, ?, ?, ?)";
     
     private static final String UPDATE_ACCOUNT = 
-        "UPDATE patients_tbl SET first_name = ?, middle_name = ?, last_name = ?, birth_date = ?, email = ?, phone = ?, updated_at = CURRENT_TIMESTAMP WHERE user_id = ?";
+        "UPDATE patients_tbl SET FirstName = ?, MiddleName = ?, LastName = ?, BirthDate = ?, email = ?, PhoneNumber = ?, updated_at = CURRENT_TIMESTAMP WHERE AccountID = ?";
     
     private static final String DELETE_ACCOUNT = 
-        "DELETE FROM patients_tbl WHERE user_id = ?";
+        "DELETE FROM patients_tbl WHERE AccountID = ?";
     
     private static final String SEARCH_ACCOUNTS = 
-        "SELECT user_id, first_name, middle_name, last_name, birth_date, email, phone, created_at, updated_at FROM patients_tbl WHERE " +
-        "first_name LIKE ? OR middle_name LIKE ? OR last_name LIKE ? OR email LIKE ? OR phone LIKE ? " +
+        "SELECT AccountID, FirstName, MiddleName, LastName, BirthDate, email, PhoneNumber, created_at, updated_at FROM patients_tbl WHERE " +
+        "FirstName LIKE ? OR MiddleName LIKE ? OR LastName LIKE ? OR email LIKE ? OR PhoneNumber LIKE ? " +
         "ORDER BY created_at DESC";
     
     private static final String COUNT_ACCOUNTS = 
         "SELECT COUNT(*) FROM patients_tbl";
     
     private static final String CHECK_EMAIL_EXISTS = 
-        "SELECT COUNT(*) FROM patients_tbl WHERE email = ? AND user_id != ?";
+        "SELECT COUNT(*) FROM patients_tbl WHERE email = ? AND AccountID != ?";
     
     /**
      * Get all accounts from database
@@ -133,12 +133,12 @@ public class AccountManagementDAO {
      * @param id Account ID
      * @return Account object or null if not found
      */
-    public Account getAccountById(int id) {
+    public Account getAccountById(String id) {
         try (Connection conn = DBConnector.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(SELECT_ACCOUNT_BY_ID)) {
-            
-            stmt.setInt(1, id);
-            
+            PreparedStatement stmt = conn.prepareStatement(SELECT_ACCOUNT_BY_ID)) {
+
+            stmt.setString(1, id);
+
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
                     return mapResultSetToAccount(rs);
@@ -177,6 +177,23 @@ public class AccountManagementDAO {
         
         return null;
     }
+
+    public Account getAccountByFormattedId(String formattedId) {
+        String sql = "SELECT AccountID, FirstName, MiddleName, LastName, BirthDate, Gender, Email, Password, PhoneNumber, created_at, updated_at FROM AccountTbl WHERE AccountID = ?";
+        try (Connection conn = DBConnector.getConnection();
+            PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, formattedId);
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    return mapResultSetToAccount(rs);
+                }
+            }
+        } catch (SQLException e) {
+            System.err.println("Error retrieving account by formatted ID: " + e.getMessage());
+            e.printStackTrace();
+        }
+        return null;
+    }
     
     /**
      * Add new account to database
@@ -185,7 +202,7 @@ public class AccountManagementDAO {
      */
     public boolean addAccount(Account account) {
         // Check if email already exists
-        if (isEmailExists(account.getEmail(), 0)) {
+        if (isEmailExists(account.getEmail(), null)) {
             System.err.println("Account with email " + account.getEmail() + " already exists");
             return false;
         }
@@ -206,7 +223,7 @@ public class AccountManagementDAO {
                 // Get generated ID
                 try (ResultSet generatedKeys = stmt.getGeneratedKeys()) {
                     if (generatedKeys.next()) {
-                        account.setId(generatedKeys.getInt(1));
+                        account.setId(generatedKeys.getString(1));
                     }
                 }
                 System.out.println("Account added successfully with ID: " + account.getId());
@@ -242,7 +259,7 @@ public class AccountManagementDAO {
             stmt.setString(4, account.getBirthday());
             stmt.setString(5, account.getEmail());
             stmt.setString(6, account.getPhoneNumber());
-            stmt.setInt(7, account.getId());
+            stmt.setString(7, account.getId());
             
             int rowsAffected = stmt.executeUpdate();
             
@@ -266,19 +283,19 @@ public class AccountManagementDAO {
      * @param id Account ID to delete
      * @return true if successful, false otherwise
      */
-    public boolean deleteAccount(int id) {
+    public boolean deleteAccount(String accountId) {
         try (Connection conn = DBConnector.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(DELETE_ACCOUNT)) {
-            
-            stmt.setInt(1, id);
-            
+            PreparedStatement stmt = conn.prepareStatement(DELETE_ACCOUNT)) {
+
+            stmt.setString(1, accountId);
+
             int rowsAffected = stmt.executeUpdate();
             
             if (rowsAffected > 0) {
-                System.out.println("Account deleted successfully: " + id);
+                System.out.println("Account deleted successfully: " + accountId);
                 return true;
             } else {
-                System.err.println("No account found with ID: " + id);
+                System.err.println("No account found with ID: " + accountId);
             }
             
         } catch (SQLException e) {
@@ -307,9 +324,9 @@ public class AccountManagementDAO {
              PreparedStatement stmt = conn.prepareStatement(SEARCH_ACCOUNTS)) {
             
             // Set search pattern for 5 searchable columns (removed address)
-            stmt.setString(1, searchPattern); // first_name
-            stmt.setString(2, searchPattern); // middle_name
-            stmt.setString(3, searchPattern); // last_name
+            stmt.setString(1, searchPattern); // FirstName
+            stmt.setString(2, searchPattern); // MiddleName
+            stmt.setString(3, searchPattern); // LastName
             stmt.setString(4, searchPattern); // email
             stmt.setString(5, searchPattern); // phone
             
@@ -356,12 +373,12 @@ public class AccountManagementDAO {
      * @param excludeId ID to exclude from check (for updates)
      * @return true if email exists, false otherwise
      */
-    public boolean isEmailExists(String email, int excludeId) {
+    public boolean isEmailExists(String email, String excludeId) {
         try (Connection conn = DBConnector.getConnection();
              PreparedStatement stmt = conn.prepareStatement(CHECK_EMAIL_EXISTS)) {
             
             stmt.setString(1, email);
-            stmt.setInt(2, excludeId);
+            stmt.setString(2, excludeId);
             
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
@@ -385,13 +402,13 @@ public class AccountManagementDAO {
      */
     private Account mapResultSetToAccount(ResultSet rs) throws SQLException {
         Account account = new Account();
-        account.setId(rs.getInt("user_id"));
-        account.setFirstName(rs.getString("first_name"));
-        account.setMiddleName(rs.getString("middle_name"));
-        account.setLastName(rs.getString("last_name"));
-        account.setBirthday(rs.getString("birth_date"));
-        account.setEmail(rs.getString("email"));
-        account.setPhoneNumber(rs.getString("phone"));
+        account.setId(rs.getString("AccountID"));
+        account.setFirstName(rs.getString("FirstName"));
+        account.setMiddleName(rs.getString("MiddleName"));
+        account.setLastName(rs.getString("LastName"));
+        account.setBirthday(rs.getString("BirthDate"));
+        account.setEmail(rs.getString("Email"));
+        account.setPhoneNumber(rs.getString("PhoneNumber"));
         account.setCreatedAt(rs.getTimestamp("created_at"));
         account.setUpdatedAt(rs.getTimestamp("updated_at"));
         return account;
