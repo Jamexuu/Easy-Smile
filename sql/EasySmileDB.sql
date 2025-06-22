@@ -167,3 +167,6 @@ ON UPDATE CASCADE; -- Optional behavior
 UPDATE patienttbl
 SET CreatedBy = 'ACC-1000001'
 WHERE CreatedBy = 'user';
+
+ALTER TABLE dentisttbl
+ADD Prefix VARCHAR(50);
