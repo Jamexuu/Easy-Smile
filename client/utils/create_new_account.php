@@ -10,7 +10,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="../css/style.css">
-    <link rel="stylesheet" href="../css/register.css">
+    <link rel="stylesheet" href="../css/register.css?v=<?= time() ?>">
 </head>
 <body>
     <header class="top-header">
@@ -43,6 +43,11 @@
                     <label for="firstName">First Name</label>
                     <input type="text" id="firstName" name="firstName" placeholder="Enter your name" 
                            value="<?= htmlspecialchars($formData['firstName'] ?? '') ?>" required>
+                </div>
+                <div class="form-group">
+                    <label for="middleName">Middle Name</label>
+                    <input type="text" id="middleName" name="middleName" placeholder="Enter your name" 
+                           value="<?= htmlspecialchars($formData['middleName'] ?? '') ?>" required>
                 </div>
                 <div class="form-group">
                     <label for="lastName">Last Name</label>

@@ -122,13 +122,6 @@ session_start();
                     <option value="17:00" <?= ($formData['appointmentTime'] ?? '') === '17:00' ? 'selected' : '' ?>>5:00 PM</option>
                 </select>
             </div>
-
-            <div class="form-group">
-                <label for="additionalNotes">Additional Notes <span class="optional">(optional)</span></label>
-                <textarea id="additionalNotes" name="additionalNotes" style="width:100%;" rows="4" 
-                        placeholder="Any additional information or special requests...">
-                        <?= htmlspecialchars($formData['additionalNotes'] ?? '') ?></textarea>
-            </div>
             
             <button type="submit" class="book-button">Book My Appointment!</button>
         </form>
