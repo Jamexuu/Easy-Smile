@@ -84,18 +84,41 @@
                        value="<?= htmlspecialchars($formData['email'] ?? '') ?>" required>
             </div>
             
-            <div class="form-group">
-                <label for="password">Password</label>
-                <input type="password" id="password" name="password" placeholder="Enter your password" required>
+            <div class="address-section">
+                <p class="address-title">Address Information</p>
+                <div class="address-fields">
+                    <div class="form-group">
+                        <label for="barangay">Barangay</label>
+                        <input type="text" id="barangay" name="barangay" placeholder="Enter your barangay" 
+                               value="<?= htmlspecialchars($formData['barangay'] ?? '') ?>" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="city">City</label>
+                        <input type="text" id="city" name="city" placeholder="Enter your city" 
+                               value="<?= htmlspecialchars($formData['city'] ?? '') ?>" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="province">Province</label>
+                        <input type="text" id="province" name="province" placeholder="Enter your province" 
+                               value="<?= htmlspecialchars($formData['province'] ?? '') ?>" required>
+                    </div>
+                </div>
             </div>
             
-            <div class="form-group password-group">
-                <label for="confirmPassword">Confirm password</label>
-                <div class="password-container">
-                    <input type="password" id="confirmPassword" name="confirmPassword" placeholder="Retype your password" required>
-                    <span class="password-toggle" onclick="togglePassword()">
-                        <i class="far fa-eye"></i>
-                    </span>
+            <div class="password-section">
+                <p class="password-title">Security Information</p>
+                <div class="password-fields">
+                    <div class="form-group">
+                        <label for="password">Password</label>
+                        <input type="password" id="password" name="password" placeholder="Enter your password" required>
+                    </div>
+                    
+                    <div class="form-group password-group">
+                        <label for="confirmPassword">Confirm password</label>
+                        <div class="password-container">
+                            <input type="password" id="confirmPassword" name="confirmPassword" placeholder="Retype your password" required>
+                        </div>
+                    </div>
                 </div>
             </div>
             
