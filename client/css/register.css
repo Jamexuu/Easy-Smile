@@ -98,6 +98,45 @@ select {
     position: relative;
 }
 
+/* Password section styling - matches address section */
+.password-section {
+    margin-top: 25px;
+    margin-bottom: 25px;
+    padding-top: 20px;
+    border-top: 1px solid #e0e0e0;
+    position: relative;
+}
+
+.password-title {
+    color: #333;
+    font-size: 18px;
+    font-weight: 500;
+    margin-top: 0;
+    margin-bottom: 15px;
+}
+
+/* Password fields row layout */
+.password-fields {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+}
+
+.password-fields .form-group {
+    flex: 1 1 100%;
+    position: relative;
+}
+
+/* Style password input fields with icons */
+.password-fields input[type="password"] {
+    padding-left: 35px; /* Space for the icon */
+    background-repeat: no-repeat;
+    background-position: 10px center;
+    background-size: 18px;
+    background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%23aaa"><path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z"/></svg>');
+}
+
+/* Make sure password toggle is still visible and positioned correctly */
 .password-container {
     position: relative;
 }
@@ -109,6 +148,7 @@ select {
     transform: translateY(-50%);
     cursor: pointer;
     color: #777;
+    z-index: 2; /* Ensure it's above the input */
 }
 
 .register-button {
@@ -143,6 +183,67 @@ select {
     padding: 2px 0;
 }
 
+/* Address section styling */
+.address-section {
+    margin-top: 25px;
+    margin-bottom: 25px;
+    padding-top: 20px;
+    border-top: 1px solid #e0e0e0;
+    position: relative;
+}
+
+.address-title {
+    color: #333;
+    font-size: 18px;
+    font-weight: 500;
+    margin-top: 0;
+    margin-bottom: 15px;
+}
+
+/* Address fields row layout */
+.address-fields {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+}
+
+.address-fields .form-group {
+    flex: 1 1 100%;
+}
+
+/* On larger screens, put city and province side by side */
+@media (min-width: 600px) {
+    .address-fields .form-group:nth-child(2),
+    .address-fields .form-group:nth-child(3) {
+        flex: 0 1 calc(50% - 7.5px);
+    }
+}
+
+/* Style each input field with an icon */
+.address-fields .form-group {
+    position: relative;
+}
+
+.address-fields input {
+    padding-left: 35px; /* Space for the icon */
+    background-repeat: no-repeat;
+    background-position: 10px center;
+    background-size: 18px;
+}
+
+/* Field-specific styling */
+#barangay {
+    background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%23aaa"><path d="M12 5.69l5 4.5V18h-2v-6H9v6H7v-7.81l5-4.5M12 3L2 12h3v8h6v-6h2v6h6v-8h3L12 3z"/></svg>');
+}
+
+#city {
+    background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%23aaa"><path d="M15 11V5l-3-3-3 3v2H3v14h18V11h-6zm-8 8H5v-2h2v2zm0-4H5v-2h2v2zm0-4H5V9h2v2zm6 8h-2v-2h2v2zm0-4h-2v-2h2v2zm0-4h-2V9h2v2zm0-4h-2V5h2v2zm6 12h-2v-2h2v2zm0-4h-2v-2h2v2z"/></svg>');
+}
+
+#province {
+    background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%23aaa"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>');
+}
+
 /* Responsive adjustments */
 @media (max-width: 600px) {
     .form-row {
@@ -161,5 +262,10 @@ select {
     
     .form-row:first-of-type .form-group:nth-child(3) {
         margin-top: 0;
+    }
+    
+    .password-fields {
+        flex-direction: column;
+        gap: 0;
     }
 }
