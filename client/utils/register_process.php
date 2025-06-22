@@ -7,6 +7,7 @@ session_start();
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     // Get and sanitize form data
     $firstName = trim($_POST['firstName']);
+    $firstName = trim($_POST['middleName']);
     $lastName = trim($_POST['lastName']);
     $birthDate = $_POST['birthDate'];
     $gender = $_POST['gender'] ?? null;
@@ -59,8 +60,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
                 
                 // Insert new patient
-                $stmt = $conn->prepare("INSERT INTO patients_tbl (first_name, last_name, birth_date, gender, phone, email, password, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, NOW())");
-                $stmt->bind_param("sssssss", $firstName, $lastName, $birthDate, $gender, $phone, $email, $hashedPassword);
+                $stmt = $conn->prepare("INSERT INTO patients_tbl (first_name, middle_name, last_name, birth_date, gender, phone, email, password, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, NOW())");
+                $stmt->bind_param("sssssss", $firstName, $middleName, $lastName, $birthDate, $gender, $phone, $email, $hashedPassword);
                 
                 if ($stmt->execute()) {
                     $_SESSION['success'] = "Registration successful! You can now login.";

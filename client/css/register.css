@@ -35,11 +35,27 @@ h1 {
 .form-row {
     display: flex;
     gap: 15px;
-    margin-bottom: 15px;
+    margin-bottom: 20px; /* Increased from 15px to match */
+}
+
+.form-row:first-of-type {
+    flex-wrap: wrap;
+    margin-bottom: 0; /* No extra margin after this row */
+}
+
+.form-row:first-of-type .form-group:nth-child(1),
+.form-row:first-of-type .form-group:nth-child(2) {
+    width: calc(50% - 7.5px);
+}
+
+.form-row:first-of-type .form-group:nth-child(3) {
+    width: 100%;
+    margin-top: 0px; 
+    margin-bottom: 20px; /* Consistent with other field spacing */
 }
 
 .form-group {
-    margin-bottom: 15px;
+    margin-bottom: 20px; /* Increased from 15px for consistent spacing */
     width: 100%;
 }
 
@@ -106,7 +122,7 @@ select {
     font-size: 16px;
     font-weight: 500;
     cursor: pointer;
-    margin-top: 10px;
+    margin-top: 20px; /* Consistent spacing */
 }
 
 .register-button:hover {
@@ -136,5 +152,14 @@ select {
     
     .register-container {
         padding: 15px;
+    }
+    
+    .form-row:first-of-type .form-group:nth-child(1),
+    .form-row:first-of-type .form-group:nth-child(2) {
+        width: 100%;
+    }
+    
+    .form-row:first-of-type .form-group:nth-child(3) {
+        margin-top: 0;
     }
 }
