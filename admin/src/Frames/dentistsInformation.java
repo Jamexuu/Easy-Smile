@@ -249,7 +249,7 @@ public class DentistsInformation extends JFrame {
         fieldsContainer.setMaximumSize(new Dimension(520, Integer.MAX_VALUE));
         
         // Add fields
-        String[] fieldLabels = {"Title", "First Name", "Middle Name", "Last Name", "Age", "Bio"};
+        String[] fieldLabels = {"Prefix", "First Name", "Middle Name", "Last Name", "Title", "Age", "Bio"};
         for (String label : fieldLabels) {
             JLabel fieldLabel = new JLabel(label);
             fieldLabel.setFont(new Font("Segoe UI", Font.BOLD, 18));
@@ -442,6 +442,7 @@ public class DentistsInformation extends JFrame {
             ((JTextField) fieldInputs.get("First Name")).setText(dentist.getFirstName() != null ? dentist.getFirstName() : "");
             ((JTextField) fieldInputs.get("Middle Name")).setText(dentist.getMiddleName() != null ? dentist.getMiddleName() : "");
             ((JTextField) fieldInputs.get("Last Name")).setText(dentist.getLastName() != null ? dentist.getLastName() : "");
+            ((JTextField) fieldInputs.get("Prefix")).setText(dentist.getPrefix() != null ? dentist.getPrefix() : "");
             ((JTextField) fieldInputs.get("Age")).setText(dentist.getAge() > 0 ? String.valueOf(dentist.getAge()) : "");
             ((JTextArea) fieldInputs.get("Bio")).setText(dentist.getBio() != null ? dentist.getBio() : "");
             selectedImagePath = dentist.getDentistImgPath();
@@ -467,48 +468,46 @@ public class DentistsInformation extends JFrame {
         setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
         try {
             // Update current dentist with field values
-            currentDentist.setTitle(((JTextField) fieldInputs.get("Title")).getText().trim());
-            currentDentist.setFirstName(((JTextField) fieldInputs.get("First Name")).getText().trim());
-            currentDentist.setMiddleName(((JTextField) fieldInputs.get("Middle Name")).getText().trim());
-            currentDentist.setLastName(((JTextField) fieldInputs.get("Last Name")).getText().trim());
-            currentDentist.setAge(Integer.parseInt(((JTextField) fieldInputs.get("Age")).getText().trim()));
-            currentDentist.setBio(((JTextArea) fieldInputs.get("Bio")).getText().trim());
-            currentDentist.setDentistImgPath(selectedImagePath);
-            
-            boolean success;
-            if (currentDentist.getInternalId() == 0) {
-                // Create new dentist
-                success = dentistDAO.addDentist(currentDentist);
-                if (success) {
-                    loadDentistData(); // Reload to get updated list with new dentist
-                }
-            } else {
-                // Update existing dentist
-                success = dentistDAO.updateDentist(currentDentist);
-            }
-            
+            currentDentist.setPrefix(((JTextField) fieldInputs.get("Prefix")).getText().trim()); // Prefix
+            currentDentist.setTitle(((JTextField) fieldInputs.get("Title")).getText().trim()); // Title
+            currentDentist.setFirstName(((JTextField) fieldInputs.get("First Name")).getText().trim()); // First Name
+            currentDentist.setMiddleName(((JTextField) fieldInputs.get("Middle Name")).getText().trim()); // Middle Name
+            currentDentist.setLastName(((JTextField) fieldInputs.get("Last Name")).getText().trim()); // Last Name
+            currentDentist.setAge(Integer.parseInt(((JTextField) fieldInputs.get("Age")).getText().trim())); // Age
+            currentDentist.setBio(((JTextArea) fieldInputs.get("Bio")).getText().trim()); // Bio
+            currentDentist.setDentistImgPath(selectedImagePath); // Image Path
+
+            // Update existing dentist
+            boolean success = dentistDAO.updateDentist(currentDentist);
+
             if (success) {
                 JOptionPane.showMessageDialog(this, 
-                    "Dentist information saved successfully!", 
-                    "Save Success", 
+                    "Dentist information updated successfully!", 
+                    "Update Success", 
                     JOptionPane.INFORMATION_MESSAGE);
+                loadDentistData(); // Reload to get updated list
             } else {
                 JOptionPane.showMessageDialog(this, 
-                    "Failed to save dentist information.", 
-                    "Save Error", 
+                    "Failed to update dentist information.", 
+                    "Update Error", 
                     JOptionPane.ERROR_MESSAGE);
             }
+        } catch (NumberFormatException e) {
+            JOptionPane.showMessageDialog(this, 
+                "Age must be a valid number.", 
+                "Validation Error", 
+                JOptionPane.WARNING_MESSAGE);
+            fieldInputs.get("Age").requestFocus();
         } catch (Exception e) {
             JOptionPane.showMessageDialog(this, 
-                "Error saving dentist information: " + e.getMessage(), 
-                "Save Error", 
+                "Error updating dentist information: " + e.getMessage(), 
+                "Update Error", 
                 JOptionPane.ERROR_MESSAGE);
             e.printStackTrace();
         } finally {
             setCursor(Cursor.getDefaultCursor());
         }
     }
-
     // Event Handlers
     private void handleActionButton(ActionEvent e) {
         if (!isEditing) {
@@ -575,36 +574,43 @@ public class DentistsInformation extends JFrame {
     }
 
     private boolean validateFields() {
+        String prefix = ((JTextField) fieldInputs.get("Prefix")).getText().trim();
         String title = ((JTextField) fieldInputs.get("Title")).getText().trim();
         String firstName = ((JTextField) fieldInputs.get("First Name")).getText().trim();
         String lastName = ((JTextField) fieldInputs.get("Last Name")).getText().trim();
         String ageText = ((JTextField) fieldInputs.get("Age")).getText().trim();
         String bio = ((JTextArea) fieldInputs.get("Bio")).getText().trim();
-        
+
+        if (prefix.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Prefix is required.", "Validation Error", JOptionPane.WARNING_MESSAGE);
+            fieldInputs.get("Prefix").requestFocus();
+            return false;
+        }
+
         if (title.isEmpty()) {
             JOptionPane.showMessageDialog(this, "Title is required.", "Validation Error", JOptionPane.WARNING_MESSAGE);
             fieldInputs.get("Title").requestFocus();
             return false;
         }
-        
+
         if (firstName.isEmpty()) {
             JOptionPane.showMessageDialog(this, "First Name is required.", "Validation Error", JOptionPane.WARNING_MESSAGE);
             fieldInputs.get("First Name").requestFocus();
             return false;
         }
-        
+
         if (lastName.isEmpty()) {
             JOptionPane.showMessageDialog(this, "Last Name is required.", "Validation Error", JOptionPane.WARNING_MESSAGE);
             fieldInputs.get("Last Name").requestFocus();
             return false;
         }
-        
+
         if (ageText.isEmpty()) {
             JOptionPane.showMessageDialog(this, "Age is required.", "Validation Error", JOptionPane.WARNING_MESSAGE);
             fieldInputs.get("Age").requestFocus();
             return false;
         }
-        
+
         try {
             int age = Integer.parseInt(ageText);
             if (age < 18 || age > 100) {
@@ -617,13 +623,13 @@ public class DentistsInformation extends JFrame {
             fieldInputs.get("Age").requestFocus();
             return false;
         }
-        
+
         if (bio.isEmpty()) {
             JOptionPane.showMessageDialog(this, "Bio is required.", "Validation Error", JOptionPane.WARNING_MESSAGE);
             fieldInputs.get("Bio").requestFocus();
             return false;
         }
-        
+
         return true;
     }
 

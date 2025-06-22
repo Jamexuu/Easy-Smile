@@ -28,7 +28,7 @@ public class PatientDAO {
         // Constructors
         public Patient() {}
 
-        public Patient(int internalId, String firstName, String middleName, String lastName, 
+        public Patient(int internalId, String firstName, String middleName, String lastName,
                       String birthDate, String gender, String createdBy) {
             this.internalId = internalId;
             this.firstName = firstName;
@@ -165,7 +165,7 @@ public class PatientDAO {
     // Add new patient
     public boolean addPatient(Patient patient) throws SQLException {
         String sql = "INSERT INTO PatientTbl (PatientID, InternalID, FirstName, MiddleName, " +
-                    "LastName, BirthDate, Gender, CreatedBy) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+                    "LastName, BirthDate, Gender, CreatedBy) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
         try (Connection conn = DBConnector.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
@@ -197,7 +197,7 @@ public class PatientDAO {
 
     // Update existing patient
     public boolean updatePatient(Patient patient) throws SQLException {
-        String sql = "UPDATE PatientTbl SET FirstName = ?, MiddleName = ?, LastName = ?, " +
+        String sql = "UPDATE PatientTbl SET FirstName = ?, MiddleName = ?, LastName = ?, " + 
                     "BirthDate = ?, Gender = ?, CreatedBy = ? WHERE InternalID = ?";
 
         try (Connection conn = DBConnector.getConnection();
@@ -208,8 +208,8 @@ public class PatientDAO {
             stmt.setString(3, patient.getLastName());
             stmt.setString(4, patient.getBirthDate());
             stmt.setString(5, patient.getGender());
-            stmt.setString(6, patient.getCreatedBy());
-            stmt.setInt(7, patient.getInternalId());
+            stmt.setString(7, patient.getCreatedBy());
+            stmt.setInt(8, patient.getInternalId());
 
             return stmt.executeUpdate() > 0;
         }

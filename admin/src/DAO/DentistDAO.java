@@ -20,6 +20,7 @@ public class DentistDAO {
         private String firstName;
         private String middleName;
         private String lastName;
+        private String prefix;
         private int age;
         private String bio;
         private String dentistImgPath;
@@ -29,13 +30,14 @@ public class DentistDAO {
         // Constructors
         public Dentist() {}
 
-        public Dentist(int internalId, String title, String firstName, String middleName, 
+        public Dentist(int internalId, String title, String firstName, String middleName, String prefix,
                       String lastName, int age, String bio, String dentistImgPath) {
             this.internalId = internalId;
             this.title = title;
             this.firstName = firstName;
             this.middleName = middleName;
             this.lastName = lastName;
+            this.prefix = prefix;
             this.age = age;
             this.bio = bio;
             this.dentistImgPath = dentistImgPath;
@@ -67,6 +69,9 @@ public class DentistDAO {
 
         public String getLastName() { return lastName; }
         public void setLastName(String lastName) { this.lastName = lastName; }
+
+        public String getPrefix() { return prefix; }
+        public void setPrefix(String prefix) { this.prefix = prefix; }
 
         public int getAge() { return age; }
         public void setAge(int age) { this.age = age; }
@@ -111,6 +116,7 @@ public class DentistDAO {
         dentist.setFirstName(rs.getString("FirstName"));
         dentist.setMiddleName(rs.getString("MiddleName"));
         dentist.setLastName(rs.getString("LastName"));
+        dentist.setPrefix(rs.getString("Prefix"));
         dentist.setAge(rs.getInt("Age"));
         dentist.setBio(rs.getString("Bio"));
         dentist.setDentistImgPath(rs.getString("DentistImgPath"));
@@ -171,56 +177,22 @@ public class DentistDAO {
         return null;
     }
 
-    // Add new dentist
-    public boolean addDentist(Dentist dentist) throws SQLException {
-        String sql = "INSERT INTO DentistTbl (DentistID, InternalID, Title, FirstName, MiddleName, " +
-                    "LastName, Age, Bio, DentistImgPath) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
-
-        try (Connection conn = DBConnector.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-            
-            // Get next internal ID
-            int nextInternalId = getNextInternalId();
-            String formattedId = formatId("den-", 1000000, nextInternalId);
-            
-            stmt.setString(1, formattedId);
-            stmt.setInt(2, nextInternalId);
-            stmt.setString(3, dentist.getTitle());
-            stmt.setString(4, dentist.getFirstName());
-            stmt.setString(5, dentist.getMiddleName());
-            stmt.setString(6, dentist.getLastName());
-            stmt.setInt(7, dentist.getAge());
-            stmt.setString(8, dentist.getBio());
-            stmt.setString(9, dentist.getDentistImgPath());
-
-            boolean success = stmt.executeUpdate() > 0;
-            
-            if (success) {
-                // Update the dentist object with the generated IDs
-                dentist.setInternalId(nextInternalId);
-                dentist.setDentistId(formattedId);
-            }
-            
-            return success;
-        }
-    }
-
-    // Update existing dentist
     public boolean updateDentist(Dentist dentist) throws SQLException {
-        String sql = "UPDATE DentistTbl SET Title = ?, FirstName = ?, MiddleName = ?, " +
+        String sql = "UPDATE DentistTbl SET Prefix = ?, Title = ?, FirstName = ?, MiddleName = ?, " +
                     "LastName = ?, Age = ?, Bio = ?, DentistImgPath = ? WHERE InternalID = ?";
 
         try (Connection conn = DBConnector.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            PreparedStatement stmt = conn.prepareStatement(sql)) {
             
-            stmt.setString(1, dentist.getTitle());
-            stmt.setString(2, dentist.getFirstName());
-            stmt.setString(3, dentist.getMiddleName());
-            stmt.setString(4, dentist.getLastName());
-            stmt.setInt(5, dentist.getAge());
-            stmt.setString(6, dentist.getBio());
-            stmt.setString(7, dentist.getDentistImgPath());
-            stmt.setInt(8, dentist.getInternalId());
+            stmt.setString(1, dentist.getPrefix()); // Prefix
+            stmt.setString(2, dentist.getTitle()); // Title
+            stmt.setString(3, dentist.getFirstName()); // First Name
+            stmt.setString(4, dentist.getMiddleName()); // Middle Name
+            stmt.setString(5, dentist.getLastName()); // Last Name
+            stmt.setInt(6, dentist.getAge()); // Age
+            stmt.setString(7, dentist.getBio()); // Bio
+            stmt.setString(8, dentist.getDentistImgPath()); // Image Path
+            stmt.setInt(9, dentist.getInternalId()); // Internal ID
 
             return stmt.executeUpdate() > 0;
         }

@@ -15,18 +15,21 @@
 
 <script>
     fetch('client/utils/DAO/fetch_dentist.php')
-        .then(response => response.json())
-        .then(data => {
-            if (data.error) {
-                console.error(data.error);
-                return;
-            }
+    .then(response => response.json())
+    .then(data => {
+        if (data.error) {
+            console.error(data.error);
+            return;
+        }
 
-            // Populate the HTML with the fetched data
-            document.getElementById('dentist-name').textContent = `${data.Title} ${data.FirstName} ${data.MiddleName || ''} ${data.LastName}`;
-            document.getElementById('dentist-age').textContent = `${data.Age} years old`;
-            document.getElementById('dentist-bio').textContent = data.Bio;
-            document.getElementById('dentist-image').src = data.DentistImgPath || 'client/static/images/default-dentist.png';
-        })
-        .catch(error => console.error('Error fetching dentist data:', error));
+        // Populate the HTML with the fetched data
+        document.getElementById('dentist-name').textContent = `${data.Prefix} ${data.FirstName} ${data.MiddleName || ''} ${data.LastName} ${data.Title}`;
+        document.getElementById('dentist-age').textContent = `${data.Age} years old`;
+        document.getElementById('dentist-bio').textContent = data.Bio;
+
+        // Dynamically set the image path
+        const imagePath = data.DentistImgPath || 'http://localhost/uploads/default-dentist.png';
+        document.getElementById('dentist-image').src = imagePath;
+    })
+    .catch(error => console.error('Error fetching dentist data:', error));
 </script>
