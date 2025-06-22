@@ -157,3 +157,13 @@ MODIFY COLUMN MiddleName VARCHAR(100) NULL;
 
 ALTER TABLE PatientTbl
 MODIFY COLUMN Gender ENUM('Male', 'Female', 'Other') NULL;
+
+ALTER TABLE patienttbl
+ADD CONSTRAINT fk_patient_createdby
+FOREIGN KEY (CreatedBy) REFERENCES AccountTbl(AccountID)
+ON DELETE CASCADE  -- Optional behavior
+ON UPDATE CASCADE; -- Optional behavior
+
+UPDATE patienttbl
+SET CreatedBy = 'ACC-1000001'
+WHERE CreatedBy = 'user';

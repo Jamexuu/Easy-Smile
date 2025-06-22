@@ -1,22 +1,32 @@
 <!-- Our Dentist Section -->
-    <div class="our-dentist-section">
-        <div class="our-dentist-container">
-            <div class="our-dentist-content">
-                <h2 class="our-dentist-heading">Our Dentist</h2>
-                <h3 class="our-dentist-name">Dr. Andrea Victoria Santos, DMD, MSD, FPFA</h3>
-                <h3 class="our-dentist-age">45 years old</h3>
-                <p class="our-dentist-bio">
-                    Dr. Andrea Victoria Santos is a highly respected dentist and orthodontist with over
-                    20 years of experience in clinical practice and dental education. After earning her 
-                    DMD from the University of the Philippines, she pursued advanced orthodontic training 
-                    at the University of the East and completed her MSD in Orthodontics abroad. She has 
-                    treated thousands of patients across Metro Manila and Southern Luzon and regularly 
-                    conducts seminars on modern orthodontic techniques. Her passion for continuous learning
-                    and mentoring young dentists sets her apart as a leader in the field.
-                </p>
-            </div>
-            <div class="our-dentist-image-container">
-                <img src="client/static/images/dentistpicture.png" alt="Dr. Andrea Victoria Santos" class="our-dentist-image">
-            </div>
+<div class="our-dentist-section">
+    <div class="our-dentist-container">
+        <div class="our-dentist-content">
+            <h2 class="our-dentist-heading">Our Dentist</h2>
+            <h3 class="our-dentist-name" id="dentist-name"></h3>
+            <h3 class="our-dentist-age" id="dentist-age"></h3>
+            <p class="our-dentist-bio" id="dentist-bio"></p>
         </div>
-    </div>  
+        <div class="our-dentist-image-container">
+            <img src="" alt="Dentist Image" class="our-dentist-image" id="dentist-image">
+        </div>
+    </div>
+</div>
+
+<script>
+    fetch('client/utils/DAO/fetch_dentist.php')
+        .then(response => response.json())
+        .then(data => {
+            if (data.error) {
+                console.error(data.error);
+                return;
+            }
+
+            // Populate the HTML with the fetched data
+            document.getElementById('dentist-name').textContent = `${data.Title} ${data.FirstName} ${data.MiddleName || ''} ${data.LastName}`;
+            document.getElementById('dentist-age').textContent = `${data.Age} years old`;
+            document.getElementById('dentist-bio').textContent = data.Bio;
+            document.getElementById('dentist-image').src = data.DentistImgPath || 'client/static/images/default-dentist.png';
+        })
+        .catch(error => console.error('Error fetching dentist data:', error));
+</script>
