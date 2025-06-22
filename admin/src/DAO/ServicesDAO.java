@@ -146,7 +146,7 @@ public class ServicesDAO {
 
     // Add new service
     public boolean addService(Service service) throws SQLException {
-        String sql = "INSERT INTO ServicesTbl (ServiceID, InternalID, ServiceName, ServicDesc, " +
+        String sql = "INSERT INTO ServicesTbl (ServiceID, InternalID, ServiceName, ServiceDesc, " +
                     "StartingPrice, Status) VALUES (?, ?, ?, ?, ?, ?)";
 
         try (Connection conn = DBConnector.getConnection();
@@ -177,7 +177,7 @@ public class ServicesDAO {
 
     // Update existing service
     public boolean updateService(Service service) throws SQLException {
-        String sql = "UPDATE ServicesTbl SET ServiceName = ?, ServicDesc = ?, " +
+        String sql = "UPDATE ServicesTbl SET ServiceName = ?, ServiceDesc = ?, " +
                     "StartingPrice = ?, Status = ? WHERE InternalID = ?";
 
         try (Connection conn = DBConnector.getConnection();
@@ -195,7 +195,7 @@ public class ServicesDAO {
 
     // Update service by formatted ID
     public boolean updateServiceByFormattedId(Service service) throws SQLException {
-        String sql = "UPDATE ServicesTbl SET ServiceName = ?, ServicDesc = ?, " +
+        String sql = "UPDATE ServicesTbl SET ServiceName = ?, ServiceDesc = ?, " +
                     "StartingPrice = ?, Status = ? WHERE ServiceID = ?";
 
         try (Connection conn = DBConnector.getConnection();
@@ -250,7 +250,7 @@ public class ServicesDAO {
         
         String sql = "SELECT * FROM ServicesTbl WHERE " +
                     "ServiceName LIKE ? OR " +
-                    "ServicDesc LIKE ? " +
+                    "ServiceDesc LIKE ? " +
                     "ORDER BY InternalID ASC";
 
         try (Connection conn = DBConnector.getConnection();
