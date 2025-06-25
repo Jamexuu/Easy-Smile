@@ -22,7 +22,9 @@ session_start();
 
     <div class="appointment-container">
         <h1>Schedule Appointment</h1>
-        <p class="appointment-subtitle">Patients Personal Information</p>
+        
+        <!-- Section 1: Personal Information -->
+        <p class="section-title">Personal Information</p>
         
         <?php
             // Display any error messages
@@ -53,17 +55,13 @@ session_start();
                 <input type="text" id="firstName" name="firstName" placeholder="Enter your first name" 
                     value="<?= htmlspecialchars($formData['firstName'] ?? '') ?>" required>
             </div>
-            
             <div class="form-group">
                 <label for="middleName">Middle Name</label>
-                <!-- Fix: This should use middleName, not lastName -->
                 <input type="text" id="middleName" name="middleName" placeholder="Enter your middle name" 
-                    value="<?= htmlspecialchars($formData['middleName'] ?? '') ?>" required>
+                    value="<?= htmlspecialchars($formData['middleName'] ?? '') ?>">
             </div>
-            
             <div class="form-group">
                 <label for="lastName">Last Name</label>
-                <!-- Fix: This should use lastName -->
                 <input type="text" id="lastName" name="lastName" placeholder="Enter your last name" 
                     value="<?= htmlspecialchars($formData['lastName'] ?? '') ?>" required>
             </div>
@@ -80,23 +78,63 @@ session_start();
                 <label for="gender">Gender <span class="optional">(optional)</span></label>
                 <select id="gender" name="gender">
                     <option value="">-- Select gender --</option>
-                    <option value="male" <?= ($formData['gender'] ?? '') === 'male' ? 'selected' : '' ?>>Male</option>
-                    <option value="female" <?= ($formData['gender'] ?? '') === 'female' ? 'selected' : '' ?>>Female</option>
-                    <option value="other" <?= ($formData['gender'] ?? '') === 'other' ? 'selected' : '' ?>>Other</option>
+                    <option value="male" <?= ($formData['gender'] ?? '') === 'Male' ? 'selected' : '' ?>>Male</option>
+                    <option value="female" <?= ($formData['gender'] ?? '') === 'Female' ? 'selected' : '' ?>>Female</option>
+                    <option value="other" <?= ($formData['gender'] ?? '') === 'Other' ? 'selected' : '' ?>>Other</option>
                 </select>
             </div>
             
+
+            <div class="form-group">
+                <label for="phone">Phone Number</label>
+                <input type="tel" id="phone" name="phone" placeholder="09123456789" 
+                    value="<?= htmlspecialchars($formData['phone'] ?? '') ?>" required 
+                    pattern="[0-9]{10,15}" title="10-15 digits only">
+            </div>
+
+            <!-- Add address section here -->
+            <div class="address-section">
+                <p class="section-title">Patient Address</p>
+                <div class="address-fields">
+                    <div class="form-group">
+                        <label for="barangay">Barangay</label>
+                        <input type="text" id="barangay" name="barangay" placeholder="Enter your barangay" 
+                               value="<?= htmlspecialchars($formData['barangay'] ?? '') ?>" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="city">City</label>
+                        <input type="text" id="city" name="city" placeholder="Enter your city" 
+                               value="<?= htmlspecialchars($formData['city'] ?? '') ?>" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="province">Province</label>
+                        <input type="text" id="province" name="province" placeholder="Enter your province" 
+                               value="<?= htmlspecialchars($formData['province'] ?? '') ?>" required>
+                    </div>
+                    
+                    <input type="hidden" id="usingAccountAddress" name="usingAccountAddress" value="0">
+                    <!-- Add "Same as Accounts Address" checkbox -->
+                    <?php if(isset($_SESSION['user_email'])): ?>
+                    <div class="form-group checkbox-group">
+                        <input type="checkbox" id="sameAsAccount" name="sameAsAccount">
+                        <label for="sameAsAccount">Same as Account's Address</label>
+                    </div>
+                    <?php endif; ?>
+                </div>
+            </div>
+            
+            <!-- Section 3: Appointment Details -->
+            <p class="section-title">Appointment Details</p>
             <div class="form-group">
                 <label for="purposeOfVisit">Purpose of Visit</label>
                 <select id="purposeOfVisit" name="purposeOfVisit" required>
                     <option value="">-- Select purpose of visit --</option>
-                    <option value="consultation" <?= ($formData['purposeOfVisit'] ?? '') === 'consultation' ? 'selected' : '' ?>>Consultation</option>
-                    <option value="cleaning" <?= ($formData['purposeOfVisit'] ?? '') === 'cleaning' ? 'selected' : '' ?>>Cleaning</option>
-                    <option value="filling" <?= ($formData['purposeOfVisit'] ?? '') === 'filling' ? 'selected' : '' ?>>Filling</option>
-                    <option value="extraction" <?= ($formData['purposeOfVisit'] ?? '') === 'extraction' ? 'selected' : '' ?>>Extraction</option>
-                    <option value="rootcanal" <?= ($formData['purposeOfVisit'] ?? '') === 'rootcanal' ? 'selected' : '' ?>>Root Canal</option>
-                    <option value="orthodontics" <?= ($formData['purposeOfVisit'] ?? '') === 'orthodontics' ? 'selected' : '' ?>>Orthodontics</option>
-                    <option value="other" <?= ($formData['purposeOfVisit'] ?? '') === 'other' ? 'selected' : '' ?>>Other</option>
+                    <option value="Braces" <?= ($formData['purposeOfVisit'] ?? '') === 'Braces' ? 'selected' : '' ?>>Braces</option>
+                    <option value="Retainers" <?= ($formData['purposeOfVisit'] ?? '') === 'Retainers' ? 'selected' : '' ?>>Retainers</option>
+                    <option value="Surgeries" <?= ($formData['purposeOfVisit'] ?? '') === 'Surgeries' ? 'selected' : '' ?>>Surgeries</option>
+                    <option value="Checkup" <?= ($formData['purposeOfVisit'] ?? '') === 'Checkup' ? 'selected' : '' ?>>Checkup</option>
+                    <option value="Deep Cleaning" <?= ($formData['purposeOfVisit'] ?? '') === 'Deep Cleaning' ? 'selected' : '' ?>>Deep Cleaning</option>
+                    <option value="Tooth Extraction" <?= ($formData['purposeOfVisit'] ?? '') === 'Tooth Extraction' ? 'selected' : '' ?>>Tooth Extraction</option>
                 </select>
             </div>
             
@@ -148,18 +186,12 @@ session_start();
     tomorrow.setDate(tomorrow.getDate() + 1);
     document.getElementById('appointmentDate').min = tomorrow.toISOString().split('T')[0];
     
-    // Phone number formatting
+    // Replace the phone formatting with:
     document.getElementById('phone').addEventListener('input', function(e) {
+        // Remove all non-digit characters
         let value = e.target.value.replace(/\D/g, '');
-        if (value.length >= 3) {
-            if (value.length <= 6) {
-                value = value.substring(0,3) + '-' + value.substring(3);
-            } else if (value.length <= 10) {
-                value = value.substring(0,3) + '-' + value.substring(3,6) + '-' + value.substring(6,10);
-            } else {
-                value = value.substring(0,3) + '-' + value.substring(3,6) + '-' + value.substring(6,10);
-            }
-        }
+        // Limit to 15 characters
+        value = value.substring(0, 15);
         e.target.value = value;
     });
 
@@ -197,5 +229,96 @@ session_start();
             return false;
         }
     });
+
+    // Handle "Same as Account's Address" checkbox
+    const sameAsAccountCheckbox = document.getElementById('sameAsAccount');
+    if (sameAsAccountCheckbox) {
+        sameAsAccountCheckbox.addEventListener('change', function() {
+            // Update the hidden field
+            document.getElementById('usingAccountAddress').value = this.checked ? "1" : "0";
+            
+            if (this.checked) {
+                // Fetch user's address from the server
+                fetch('DAO/fetch_address.php')
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            // Fill in the address fields
+                            document.getElementById('barangay').value = data.address.barangay || '';
+                            document.getElementById('city').value = data.address.city || '';
+                            document.getElementById('province').value = data.address.province || '';
+                            
+                            // Disable the fields when using account address
+                            document.getElementById('barangay').readOnly = true;
+                            document.getElementById('city').readOnly = true;
+                            document.getElementById('province').readOnly = true;
+                        } else {
+                            alert('Could not retrieve your address. Please enter it manually.');
+                            this.checked = false;
+                            document.getElementById('usingAccountAddress').value = "0";
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error fetching address:', error);
+                        alert('An error occurred. Please enter your address manually.');
+                        this.checked = false;
+                        document.getElementById('usingAccountAddress').value = "0";
+                    });
+            } else {
+                // Enable fields for manual entry
+                document.getElementById('barangay').readOnly = false;
+                document.getElementById('city').readOnly = false;
+                document.getElementById('province').readOnly = false;
+            }
+        });
+    }
 </script>
+
+<style>
+    /* Add this to your CSS or style block */
+    .section-title {
+        font-family: 'Poppins', sans-serif;
+        font-size: 18px;
+        font-weight: 600;
+        color: #4da0ff;
+        margin: 25px 0 15px 0;
+        padding-bottom: 5px;
+        border-bottom: 1px solid #e0e0e0;
+    }
+    
+    /* If you want to keep existing classes but make them consistent */
+    .appointment-subtitle, 
+    .address-title {
+        font-family: 'Poppins', sans-serif;
+        font-size: 18px;
+        font-weight: 600;
+        color: #4da0ff;
+        margin: 25px 0 15px 0;
+        padding-bottom: 5px;
+        border-bottom: 1px solid #e0e0e0;
+    }
+    
+    .checkbox-group {
+        display: flex;
+        align-items: center;
+        margin: 15px 0;
+    }
+    
+    .checkbox-group input[type="checkbox"] {
+        margin-right: 10px;
+        width: auto;
+        height: auto;
+    }
+    
+    .checkbox-group label {
+        font-size: 14px;
+        color: #555;
+        cursor: pointer;
+    }
+    
+    input[readonly] {
+        background-color: #f9f9f9;
+        cursor: not-allowed;
+    }
+</style>
 </html>

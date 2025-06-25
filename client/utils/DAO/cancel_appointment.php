@@ -3,18 +3,19 @@ session_start();
 require_once '../Connection/db_connection.php';
 
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['appointment_id'])) {
-    $appointmentId = (int)$_POST['appointment_id'];
+    $appointmentId = $_POST['appointment_id'];
     
     try {
         $conn = create_connection();
         
-        // Update appointment status to cancelled
-        $stmt = $conn->prepare("UPDATE appointment_tbl SET status = 'cancelled' WHERE appointment_id = ?");
-        $stmt->bind_param("i", $appointmentId);
+        // Update appointment status to cancelled - NOTE: Fixed case to 'Canceled' to match your DB
+        $stmt = $conn->prepare("UPDATE AppointmentTbl SET Status = 'Canceled' WHERE AppointmentID = ?");
+        $stmt->bind_param("s", $appointmentId);
         
         if ($stmt->execute()) {
-            $_SESSION['message'] = "Appointment cancelled successfully.";
-            header("Location: ../schedule_appointment.php");
+            $_SESSION['success'] = "Appointment cancelled successfully.";
+            // Change redirect to homepage instead of schedule_appointment.php
+            header("Location: ../../index.php");
         } else {
             $_SESSION['error'] = "Failed to cancel appointment.";
             header("Location: ../view_appointment.php?id=" . $appointmentId);
@@ -28,7 +29,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['appointment_id'])) {
         header("Location: ../view_appointment.php?id=" . $appointmentId);
     }
 } else {
-    header("Location: ../schedule_appointment.php");
+    header("Location: /index.php");
 }
 exit();
 ?>

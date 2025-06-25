@@ -170,3 +170,13 @@ WHERE CreatedBy = 'user';
 
 ALTER TABLE dentisttbl
 ADD Prefix VARCHAR(50);
+
+ALTER TABLE patienttbl
+ADD PhoneNumber VARCHAR(20) NOT NULL;
+
+INSERT INTO ServicesTbl (ServiceID, InternalID, ServiceName, ServicDesc, StartingPrice, Status)
+VALUES 
+('SER-1000001', 1, 'Braces Installation', 'Orthodontic braces fitting.', 30000.00, 'Available');
+
+ALTER TABLE servicestbl
+RENAME COLUMN ServicDesc TO ServiceDesc

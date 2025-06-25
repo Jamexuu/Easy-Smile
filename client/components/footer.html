@@ -1,22 +1,43 @@
 <div class="contact-info footer-contact">
-    <a href="tel:09455808022">
+    <a href="#" id="footer-phone">
         <i class="fas fa-phone"></i>
-        09455808022
     </a>
-    <a href="#">
+    <a href="#" id="footer-location">
         <i class="fas fa-map-marker-alt"></i>
-        Zone 1 Brgy. Luyos Tanauan City, Batangas
     </a>
-    <a href="mailto:easysmiledentalclinic@gmail.com">
+    <a href="#" id="footer-email">
         <i class="fas fa-envelope"></i>
-        easysmiledentalclinic@gmail.com
     </a>
 </div>
 <div class="social-media footer-social">
-    <a href="https://www.facebook.com/" aria-label="Facebook">
+    <a href="#" id="footer-facebook" aria-label="Facebook">
         <i class="fab fa-facebook-f"></i>
     </a>
-    <a href="https://www.instagram.com/" aria-label="Instagram">
+    <a href="#" id="footer-instagram" aria-label="Instagram">
         <i class="fab fa-instagram"></i>
     </a>
 </div>
+
+<script>
+    fetch('/client/utils/DAO/fetch_clinic_info.php')
+        .then(response => response.json())
+        .then(data => {
+            if (data.error) {
+                console.error(data.error);
+                return;
+            }
+
+            // Populate footer with clinic information
+            document.getElementById('footer-phone').href = `tel:${data.PhoneNumber}`;
+            document.getElementById('footer-phone').textContent = data.PhoneNumber;
+
+            document.getElementById('footer-location').textContent = data.Location;
+
+            document.getElementById('footer-email').href = `mailto:${data.Email}`;
+            document.getElementById('footer-email').textContent = data.Email;
+
+            document.getElementById('footer-facebook').href = data.FacebookLink;
+            document.getElementById('footer-instagram').href = data.InstagramLink;
+        })
+        .catch(error => console.error('Error fetching clinic information:', error));
+</script>

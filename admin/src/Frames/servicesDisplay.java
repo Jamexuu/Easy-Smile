@@ -240,15 +240,12 @@ public class ServicesDisplay extends JFrame {
 
         JButton viewBtn = makeSmallButton("View");
         JButton editBtn = makeSmallButton("Edit");
-        JButton deleteBtn = makeSmallButton("Delete");
 
         viewBtn.addActionListener(e -> viewService(row));
         editBtn.addActionListener(e -> editService(row));
-        deleteBtn.addActionListener(e -> deleteService(row));
 
         actionPanel.add(viewBtn);
         actionPanel.add(editBtn);
-        actionPanel.add(deleteBtn);
 
         return actionPanel;
     }
@@ -381,7 +378,6 @@ public class ServicesDisplay extends JFrame {
 
             JButton viewBtn = makeSmallButton("View");
             JButton editBtn = makeSmallButton("Edit");
-            JButton deleteBtn = makeSmallButton("Delete");
 
             viewBtn.addActionListener(e -> {
                 viewService(row);
@@ -391,14 +387,9 @@ public class ServicesDisplay extends JFrame {
                 editService(row);
                 fireEditingStopped();
             });
-            deleteBtn.addActionListener(e -> {
-                deleteService(row);
-                fireEditingStopped();
-            });
 
             panel.add(viewBtn);
             panel.add(editBtn);
-            panel.add(deleteBtn);
 
             return panel;
         }
@@ -549,46 +540,6 @@ public class ServicesDisplay extends JFrame {
                 "Edit Error", 
                 JOptionPane.ERROR_MESSAGE);
             e.printStackTrace();
-        }
-    }
-
-    private void deleteService(int row) {
-        if (row < 0 || row >= servicesList.size()) return;
-        
-        Service service = servicesList.get(row);
-        
-        int confirm = JOptionPane.showConfirmDialog(this,
-            "Are you sure you want to delete this service?\n" + service.getServiceName(),
-            "Confirm Delete",
-            JOptionPane.YES_NO_OPTION);
-            
-        if (confirm == JOptionPane.YES_OPTION) {
-            setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
-            try {
-                boolean success = servicesDAO.deleteService(service.getInternalId());
-                
-                if (success) {
-                    JOptionPane.showMessageDialog(this, 
-                        "Service deleted successfully!", 
-                        "Delete Success", 
-                        JOptionPane.INFORMATION_MESSAGE);
-                    loadServicesData(); // Reload data
-                    clearFields();
-                } else {
-                    JOptionPane.showMessageDialog(this, 
-                        "Failed to delete service.", 
-                        "Delete Error", 
-                        JOptionPane.ERROR_MESSAGE);
-                }
-            } catch (Exception e) {
-                JOptionPane.showMessageDialog(this, 
-                    "Error deleting service: " + e.getMessage(), 
-                    "Delete Error", 
-                    JOptionPane.ERROR_MESSAGE);
-                e.printStackTrace();
-            } finally {
-                setCursor(Cursor.getDefaultCursor());
-            }
         }
     }
 

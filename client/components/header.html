@@ -1,23 +1,43 @@
 <div class="contact-info">
-    <a href="tel:09455808022">
+    <a href="#" id="header-phone">
         <i class="fas fa-phone"></i>
-        09455808022
     </a>
-    <a href="#">
+    <a href="#" id="header-location">
         <i class="fas fa-map-marker-alt"></i>
-        Zone 1 Brgy. Luyos Tanauan City, Batangas
     </a>
-    <a href="mailto:easysmiledentalclinic@gmail.com">
+    <a href="#" id="header-email">
         <i class="fas fa-envelope"></i>
-        easysmiledentalclinic@gmail.com
     </a>
 </div>
 <div class="social-media">
-    <a href="https://www.facebook.com/" aria-label="Facebook">
+    <a href="#" id="header-facebook" aria-label="Facebook">
         <i class="fab fa-facebook-f"></i>
     </a>
-    <a href="https://www.instagram.com/" aria-label="Instagram">
+    <a href="#" id="header-instagram" aria-label="Instagram">
         <i class="fab fa-instagram"></i>
     </a>
-    
 </div>
+
+<script>
+    fetch('/client/utils/DAO/fetch_clinic_info.php')
+        .then(response => response.json())
+        .then(data => {
+            if (data.error) {
+                console.error(data.error);
+                return;
+            }
+
+            // Populate header with clinic information
+            document.getElementById('header-phone').href = `tel:${data.PhoneNumber}`;
+            document.getElementById('header-phone').textContent = data.PhoneNumber;
+
+            document.getElementById('header-location').textContent = data.Location;
+
+            document.getElementById('header-email').href = `mailto:${data.Email}`;
+            document.getElementById('header-email').textContent = data.Email;
+
+            document.getElementById('header-facebook').href = data.FacebookLink;
+            document.getElementById('header-instagram').href = data.InstagramLink;
+        })
+        .catch(error => console.error('Error fetching clinic information:', error));
+</script>

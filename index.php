@@ -41,6 +41,21 @@
             });
         </script>
     <?php endif; ?>
+
+    <script>
+        // Check for appointment cancellation status
+        <?php if (isset($_GET['cancelled']) && $_GET['cancelled'] === 'true'): ?>
+            alert("Your appointment has been cancelled successfully!");
+        <?php elseif (isset($_GET['cancelled']) && $_GET['cancelled'] === 'false'): ?>
+            alert("Error: <?php echo isset($_SESSION['error']) ? $_SESSION['error'] : 'Failed to cancel appointment'; ?>");
+        <?php endif; ?>
+        
+        <?php 
+        // Clear the session variables after showing the message
+        if (isset($_SESSION['success'])) unset($_SESSION['success']);
+        if (isset($_SESSION['error'])) unset($_SESSION['error']);
+        ?>
+    </script>
 </body>
 <footer class="top-header">
     <?php include 'client/components/footer.html'; ?>
