@@ -25,11 +25,16 @@ public class PatientDAO {
         private String createdAt;
         private String updatedAt;
 
+        private String barangay;
+        private String city;
+        private String province;
+
         // Constructors
         public Patient() {}
 
         public Patient(int internalId, String firstName, String middleName, String lastName,
-                      String birthDate, String gender, String createdBy) {
+                      String birthDate, String gender, String createdBy, String barangay,
+                      String city, String province) {
             this.internalId = internalId;
             this.firstName = firstName;
             this.middleName = middleName;
@@ -37,6 +42,9 @@ public class PatientDAO {
             this.birthDate = birthDate;
             this.gender = gender;
             this.createdBy = createdBy;
+            this.barangay = barangay;
+            this.city = city;
+            this.province = province;
             // Generate formatted patient ID
             this.patientId = formatId("PAT-", 1000000, internalId);
         }
@@ -47,7 +55,7 @@ public class PatientDAO {
             this.internalId = internalId; 
             // Update formatted ID when internal ID changes
             if (internalId > 0) {
-                this.patientId = formatId("pat-", 1000000, internalId);
+                this.patientId = formatId("PAT-", 1000000, internalId);
             }
         }
 
@@ -71,6 +79,15 @@ public class PatientDAO {
 
         public String getCreatedBy() { return createdBy; }
         public void setCreatedBy(String createdBy) { this.createdBy = createdBy; }
+
+        public String getBarangay() { return barangay; }
+        public void setBarangay(String barangay) { this.barangay = barangay; }
+
+        public String getCity() { return city; }
+        public void setCity(String city) { this.city = city; }
+
+        public String getProvince() { return province; }
+        public void setProvince(String province) { this.province = province; }
 
         public String getCreatedAt() { return createdAt; }
         public void setCreatedAt(String createdAt) { this.createdAt = createdAt; }
@@ -107,41 +124,11 @@ public class PatientDAO {
         patient.setCreatedBy(rs.getString("CreatedBy"));
         patient.setCreatedAt(rs.getString("created_at"));
         patient.setUpdatedAt(rs.getString("updated_at"));
+
+        patient.setBarangay(rs.getString("Barangay"));
+        patient.setCity(rs.getString("City"));
+        patient.setProvince(rs.getString("Province"));
         return patient;
-    }
-
-    // Get all patients
-    public List<Patient> getAllPatients() throws SQLException {
-        List<Patient> patients = new ArrayList<>();
-        String sql = "SELECT * FROM PatientTbl ORDER BY InternalID ASC";
-
-        try (Connection conn = DBConnector.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql);
-             ResultSet rs = stmt.executeQuery()) {
-
-            while (rs.next()) {
-                patients.add(createPatientFromResultSet(rs));
-            }
-        }
-        return patients;
-    }
-
-    // Get patient by Internal ID
-    public Patient getPatientById(int internalId) throws SQLException {
-        String sql = "SELECT * FROM PatientTbl WHERE InternalID = ?";
-
-        try (Connection conn = DBConnector.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-            
-            stmt.setInt(1, internalId);
-            
-            try (ResultSet rs = stmt.executeQuery()) {
-                if (rs.next()) {
-                    return createPatientFromResultSet(rs);
-                }
-            }
-        }
-        return null;
     }
 
     // Get patient by formatted ID (e.g., "pat-1000000")
@@ -162,57 +149,44 @@ public class PatientDAO {
         return null;
     }
 
-    // Add new patient
-    public boolean addPatient(Patient patient) throws SQLException {
-        String sql = "INSERT INTO PatientTbl (PatientID, InternalID, FirstName, MiddleName, " +
-                    "LastName, BirthDate, Gender, CreatedBy) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        // Get all patients with address
+    public List<Patient> getAllPatients() throws SQLException {
+        List<Patient> patients = new ArrayList<>();
+        String sql = "SELECT p.*, pa.Barangay, pa.City, pa.Province " +
+                "FROM PatientTbl p " +
+                "LEFT JOIN PatientAddressTbl pa ON p.PatientID = pa.PatientID " +
+                "ORDER BY p.InternalID ASC";
 
         try (Connection conn = DBConnector.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-            
-            // Get next internal ID
-            int nextInternalId = getNextInternalId();
-            String formattedId = formatId("pat-", 1000000, nextInternalId);
-            
-            stmt.setString(1, formattedId);
-            stmt.setInt(2, nextInternalId);
-            stmt.setString(3, patient.getFirstName());
-            stmt.setString(4, patient.getMiddleName());
-            stmt.setString(5, patient.getLastName());
-            stmt.setString(6, patient.getBirthDate());
-            stmt.setString(7, patient.getGender());
-            stmt.setString(8, patient.getCreatedBy());
+            PreparedStatement stmt = conn.prepareStatement(sql);
+            ResultSet rs = stmt.executeQuery()) {
 
-            boolean success = stmt.executeUpdate() > 0;
-            
-            if (success) {
-                // Update the patient object with the generated IDs
-                patient.setInternalId(nextInternalId);
-                patient.setPatientId(formattedId);
+            while (rs.next()) {
+                patients.add(createPatientFromResultSet(rs));
             }
-            
-            return success;
         }
+        return patients;
     }
 
-    // Update existing patient
-    public boolean updatePatient(Patient patient) throws SQLException {
-        String sql = "UPDATE PatientTbl SET FirstName = ?, MiddleName = ?, LastName = ?, " + 
-                    "BirthDate = ?, Gender = ?, CreatedBy = ? WHERE InternalID = ?";
+    // Get patient by Internal ID with address
+    public Patient getPatientById(int internalId) throws SQLException {
+        String sql = "SELECT p.*, pa.Barangay, pa.City, pa.Province " +
+                    "FROM PatientTbl p " +
+                    "LEFT JOIN PatientAddressTbl pa ON p.PatientID = pa.PatientID " +
+                    "WHERE p.InternalID = ?";
 
         try (Connection conn = DBConnector.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-            
-            stmt.setString(1, patient.getFirstName());
-            stmt.setString(2, patient.getMiddleName());
-            stmt.setString(3, patient.getLastName());
-            stmt.setString(4, patient.getBirthDate());
-            stmt.setString(5, patient.getGender());
-            stmt.setString(7, patient.getCreatedBy());
-            stmt.setInt(8, patient.getInternalId());
+            PreparedStatement stmt = conn.prepareStatement(sql)) {
 
-            return stmt.executeUpdate() > 0;
+            stmt.setInt(1, internalId);
+
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    return createPatientFromResultSet(rs);
+                }
+            }
         }
+        return null;
     }
 
     // Update patient by formatted ID
@@ -235,18 +209,154 @@ public class PatientDAO {
         }
     }
 
-    // Delete patient by Internal ID
-    public boolean deletePatient(int internalId) throws SQLException {
-        String sql = "DELETE FROM PatientTbl WHERE InternalID = ?";
+   // Fix the updatePatient method
 
-        try (Connection conn = DBConnector.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
+    public boolean updatePatient(Patient patient) throws SQLException {
+        Connection conn = null;
+        boolean success = false;
+        
+        try {
+            conn = DBConnector.getConnection();
+            conn.setAutoCommit(false); // Start transaction
             
-            stmt.setInt(1, internalId);
-            return stmt.executeUpdate() > 0;
+            // 1. First update patient basic information - DO NOT update CreatedBy field
+            String patientSql = "UPDATE PatientTbl SET FirstName = ?, MiddleName = ?, LastName = ?, " +
+                            "BirthDate = ?, Gender = ? WHERE InternalID = ?";
+            
+            try (PreparedStatement patientStmt = conn.prepareStatement(patientSql)) {
+                patientStmt.setString(1, patient.getFirstName());
+                patientStmt.setString(2, patient.getMiddleName());
+                patientStmt.setString(3, patient.getLastName());
+                patientStmt.setString(4, patient.getBirthDate());
+                patientStmt.setString(5, patient.getGender());
+                patientStmt.setInt(6, patient.getInternalId());
+                
+                int patientRows = patientStmt.executeUpdate();
+                System.out.println("Updated patient rows: " + patientRows);
+                
+                // 2. Now update the address - use PatientID not InternalID
+                String addressSql = "UPDATE PatientAddressTbl SET Barangay = ?, City = ?, Province = ? " +
+                                "WHERE PatientID = (SELECT PatientID FROM PatientTbl WHERE InternalID = ?)";
+                
+                try (PreparedStatement addressStmt = conn.prepareStatement(addressSql)) {
+                    addressStmt.setString(1, patient.getBarangay());
+                    addressStmt.setString(2, patient.getCity());
+                    addressStmt.setString(3, patient.getProvince());
+                    addressStmt.setInt(4, patient.getInternalId());
+                    
+                    int addressRows = addressStmt.executeUpdate();
+                    System.out.println("Updated address rows: " + addressRows);
+                    
+                    // Commit if patient update was successful, don't require address rows to be updated
+                    // as some patients might not have address data
+                    if (patientRows > 0) {
+                        conn.commit();
+                        success = true;
+                    } else {
+                        conn.rollback();
+                    }
+                }
+            }
+        } catch (SQLException e) {
+            // Print detailed error info
+            System.err.println("SQL Error updating patient: " + e.getMessage());
+            e.printStackTrace();
+            
+            if (conn != null) {
+                try {
+                    conn.rollback();
+                } catch (SQLException ex) {
+                    ex.printStackTrace();
+                }
+            }
+            throw e;
+        } finally {
+            if (conn != null) {
+                try {
+                    conn.setAutoCommit(true);
+                    conn.close();
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+            }
         }
+        
+        return success;
     }
 
+    // Delete patient by Internal ID
+    public boolean deletePatient(int internalId) throws SQLException {
+        Connection conn = null;
+        try {
+            conn = DBConnector.getConnection();
+            // Start transaction to ensure all operations succeed or fail together
+            conn.setAutoCommit(false);
+            
+            // First, get the patient's ID
+            String getPatientIdSql = "SELECT PatientID FROM PatientTbl WHERE InternalID = ?";
+            try (PreparedStatement stmt = conn.prepareStatement(getPatientIdSql)) {
+                stmt.setInt(1, internalId);
+                ResultSet rs = stmt.executeQuery();
+                
+                if (rs.next()) {
+                    String patientId = rs.getString("PatientID");
+                    System.out.println("Deleting all records for patient ID: " + patientId);
+                    
+                    // 1. First delete all appointments for this patient
+                    String deleteAppointmentsSql = "DELETE FROM AppointmentTbl WHERE PatientID = ?";
+                    try (PreparedStatement deleteAppts = conn.prepareStatement(deleteAppointmentsSql)) {
+                        deleteAppts.setString(1, patientId);
+                        int appointmentsDeleted = deleteAppts.executeUpdate();
+                        System.out.println("Deleted " + appointmentsDeleted + " appointments");
+                    }
+                    
+                    // 2. Delete patient address records
+                    String deleteAddressSql = "DELETE FROM PatientAddressTbl WHERE PatientID = ?";
+                    try (PreparedStatement deleteAddress = conn.prepareStatement(deleteAddressSql)) {
+                        deleteAddress.setString(1, patientId);
+                        int addressesDeleted = deleteAddress.executeUpdate();
+                        System.out.println("Deleted " + addressesDeleted + " address records");
+                    }
+                    
+                    // 3. Now delete the patient
+                    String deletePatientSql = "DELETE FROM PatientTbl WHERE InternalID = ?";
+                    try (PreparedStatement deletePatient = conn.prepareStatement(deletePatientSql)) {
+                        deletePatient.setInt(1, internalId);
+                        int result = deletePatient.executeUpdate();
+                        
+                        // Commit the transaction if we get here
+                        conn.commit();
+                        return result > 0;
+                    }
+                } else {
+                    // Patient not found
+                    conn.rollback();
+                    return false;
+                }
+            }
+        } catch (SQLException e) {
+            // Something went wrong, roll back the transaction
+            if (conn != null) {
+                try {
+                    conn.rollback();
+                    System.out.println("Transaction rolled back due to error: " + e.getMessage());
+                } catch (SQLException ex) {
+                    ex.printStackTrace();
+                }
+            }
+            throw e; // Rethrow the exception for the UI to handle
+        } finally {
+            // Restore auto-commit and close connection
+            if (conn != null) {
+                try {
+                    conn.setAutoCommit(true);
+                    conn.close();
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+    }
     // Delete patient by formatted ID
     public boolean deletePatientByFormattedId(String formattedId) throws SQLException {
         String sql = "DELETE FROM PatientTbl WHERE PatientID = ?";
@@ -262,6 +372,10 @@ public class PatientDAO {
     // Search patients by name, gender, or formatted ID
     public List<Patient> searchPatients(String searchText) throws SQLException {
         List<Patient> patients = new ArrayList<>();
+        String sql = "SELECT p.*, pa.Barangay, pa.City, pa.Province " +
+                 "FROM PatientTbl p " +
+                 "LEFT JOIN PatientAddressTbl pa ON p.PatientID = pa.PatientID " +
+                 "WHERE p.FirstName LIKE ? OR p.LastName LIKE ? OR pa.City LIKE ? OR pa.Province LIKE ?";
         
         // Check if search text is a formatted ID
         if (searchText.startsWith("pat-")) {
@@ -271,23 +385,16 @@ public class PatientDAO {
                 return patients;
             }
         }
-        
-        String sql = "SELECT * FROM PatientTbl WHERE " +
-                    "FirstName LIKE ? OR " +
-                    "MiddleName LIKE ? OR " +
-                    "LastName LIKE ? OR " +
-                    "Gender LIKE ? OR " +
-                    "CreatedBy LIKE ? " +
-                    "ORDER BY InternalID ASC";
 
         try (Connection conn = DBConnector.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
             
             String searchPattern = "%" + searchText + "%";
-            for (int i = 1; i <= 5; i++) {
-                stmt.setString(i, searchPattern);
-            }
-            
+            stmt.setString(1, searchPattern);
+            stmt.setString(2, searchPattern);
+            stmt.setString(3, searchPattern);
+            stmt.setString(4, searchPattern);
+
             try (ResultSet rs = stmt.executeQuery()) {
                 while (rs.next()) {
                     patients.add(createPatientFromResultSet(rs));

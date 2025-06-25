@@ -48,7 +48,7 @@ public class homepage extends JFrame{
                 homeLabel.setText(makeMenuLabel("Home", selectedMenu.equals("Home")).getText());
                 servicesLabel.setText(makeMenuLabel("Services Display", selectedMenu.equals("Services Display")).getText());
                 dentistLabel.setText(makeMenuLabel("Dentists Information", selectedMenu.equals("Dentists Information")).getText());
-                accountLabel.setText(makeMenuLabel("Account Information", selectedMenu.equals("Account Information")).getText());
+                accountLabel.setText(makeMenuLabel("Accounts", selectedMenu.equals("Account Information")).getText());
                 clinicLabel.setText(makeMenuLabel("Clinic Information", selectedMenu.equals("Clinic Information")).getText());
 
                 // Navigation logic
@@ -123,7 +123,7 @@ public class homepage extends JFrame{
             dispose();
             SwingUtilities.invokeLater(() -> {
                 AppointmentManagementFrame appointmentFrame = new AppointmentManagementFrame();
-                appointmentFrame.appointment();
+                appointmentFrame.initialize();
             });
             
         });

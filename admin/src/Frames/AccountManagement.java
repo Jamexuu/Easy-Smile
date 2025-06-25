@@ -8,7 +8,9 @@ import javax.swing.table.TableRowSorter;
 import java.awt.*;
 import java.awt.event.*;
 import java.util.EventObject;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.ArrayList;
 
 import DAO.AccountManagementDAO;
@@ -40,10 +42,17 @@ public class AccountManagement extends JFrame {
 
     private boolean isInitialized = false;
 
+    private boolean isEditMode = false;
+    private Map<String, JTextField> fieldInputs;
+    // Add these instance variables
+    private JButton saveButton;
+    private JButton cancelButton;
+
     public AccountManagement() {
         // Initialize DAO
         accountDAO = new AccountManagementDAO();
         accountIds = new ArrayList<>();
+        sidebarFields = new ArrayList<>();
     }
 
     public void initialize() {
@@ -235,13 +244,13 @@ public class AccountManagement extends JFrame {
 
     private void createTable() {
         String[] columnNames = {"User ID", "First Name", "Middle Name", "Last Name", "Birthday", 
-                            "Email", "Phone Num", "Actions"};
+                            "Email", "Phone Num", "Barangay", "City", "Province", "Actions"};
         Object[][] data = {};
 
         tableModel = new DefaultTableModel(data, columnNames) {
             @Override
             public boolean isCellEditable(int row, int column) {
-                return column == 7; // Only Actions column is editable
+                return column == 10; // Only Actions column is editable
             }
         };
 
@@ -262,13 +271,188 @@ public class AccountManagement extends JFrame {
         table.getColumn("Actions").setPreferredWidth(140);
         table.getColumn("Actions").setMinWidth(140);
         table.getColumn("Actions").setMaxWidth(140);
+
+        table.getColumn("Actions").setCellRenderer(new ActionsRenderer());
+        table.getColumn("Actions").setCellEditor(new ActionsEditor(table, sidebarFields));
+    }
+
+    private JPanel createFieldPanel(String labelText) {
+        JPanel fieldPanel = new JPanel();
+        fieldPanel.setLayout(new BoxLayout(fieldPanel, BoxLayout.Y_AXIS));
+        fieldPanel.setOpaque(false);
+
+        JLabel label = new JLabel(labelText);
+        label.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        label.setForeground(DARK_BLUE_COLOR);
+
+        JTextField textField = new JTextField();
+        textField.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        textField.setMaximumSize(new Dimension(Integer.MAX_VALUE, 30));
+        textField.setBackground(Color.WHITE);
+        textField.setForeground(BLUE_COLOR);
+        textField.setBorder(BorderFactory.createLineBorder(DARK_BLUE_COLOR, 1));
+
+        // Add the label and text field to the panel
+        fieldPanel.add(label);
+        fieldPanel.add(Box.createVerticalStrut(5)); // Add spacing between label and text field
+        fieldPanel.add(textField);
+
+        // Add the text field to the sidebarFields list for later access
+        sidebarFields.add(textField);
+
+        return fieldPanel;
+    }
+
+    private void createSidebarFields(JPanel sidebarPanel) {
+        String[] fieldLabels = {"Account ID:", "First Name:", "Middle Name:", "Last Name:", "Birthday:", 
+                                "Email:", "Phone Number:", "Barangay:", "City:", "Province:"};
+        fieldInputs = new HashMap<>();
+        
+        // Ensure sidebarFields is initialized
+        if (sidebarFields == null) {
+            sidebarFields = new ArrayList<>();
+        } else {
+            sidebarFields.clear(); // Clear existing entries if reusing
+        }
+
+        for (String label : fieldLabels) {
+            JPanel fieldPanel = new JPanel();
+            fieldPanel.setLayout(new BoxLayout(fieldPanel, BoxLayout.Y_AXIS));
+            fieldPanel.setOpaque(false);
+
+            JLabel fieldLabel = new JLabel(label);
+            fieldLabel.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+            fieldLabel.setForeground(Color.decode("#192F8F"));
+
+            JTextField textField = new JTextField();
+            textField.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+            textField.setMaximumSize(new Dimension(Integer.MAX_VALUE, 30));
+            textField.setBackground(Color.WHITE);
+            textField.setForeground(Color.decode("#1167B1"));
+            textField.setBorder(BorderFactory.createLineBorder(Color.decode("#192F8F"), 1));
+
+            // Add field to both collections
+            fieldInputs.put(label, textField);
+            sidebarFields.add(textField); // Add to sidebarFields list
+
+            // Make the "Account ID" field non-editable
+            if (label.equals("Account ID:")) {
+                textField.setEditable(false);
+                textField.setBackground(Color.LIGHT_GRAY);
+            }
+
+            // Add the label and text field to the panel
+            fieldPanel.add(fieldLabel);
+            fieldPanel.add(Box.createVerticalStrut(5)); // Add spacing between label and text field
+            fieldPanel.add(textField);
+            sidebarPanel.add(fieldPanel);
+            sidebarPanel.add(Box.createVerticalStrut(8)); // Add spacing between fields
+        }
+
+        // Add Save and Cancel buttons
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 0));
+        buttonPanel.setOpaque(false);
+
+        saveButton = createStyledButton("Save", 100);
+        cancelButton = createStyledButton("Cancel", 100);
+
+        saveButton.addActionListener(this::saveAccountChanges);
+        cancelButton.addActionListener(this::cancelEdit);
+
+        saveButton.setEnabled(false); // Disabled by default
+        cancelButton.setEnabled(false); // Disabled by default
+
+        buttonPanel.add(saveButton);
+        buttonPanel.add(cancelButton);
+        sidebarPanel.add(Box.createVerticalStrut(15));
+        sidebarPanel.add(buttonPanel);
+    }
+
+    private void saveAccountChanges(ActionEvent e) {
+        try {
+            // Get the account ID from the first field
+            String accountId = fieldInputs.get("Account ID:").getText();
+
+            if (accountId == null || accountId.isEmpty()) {
+                JOptionPane.showMessageDialog(this,
+                    "Invalid account ID!",
+                    "Error",
+                    JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
+            // Create account object from fields
+            Account account = new Account();
+            account.setId(accountId);
+            account.setFirstName(fieldInputs.get("First Name:").getText());
+            account.setMiddleName(fieldInputs.get("Middle Name:").getText());
+            account.setLastName(fieldInputs.get("Last Name:").getText());
+            account.setBirthday(fieldInputs.get("Birthday:").getText());
+            account.setEmail(fieldInputs.get("Email:").getText());
+            account.setPhoneNumber(fieldInputs.get("Phone Number:").getText());
+            account.setBarangay(fieldInputs.get("Barangay:").getText());
+            account.setCity(fieldInputs.get("City:").getText());
+            account.setProvince(fieldInputs.get("Province:").getText());
+
+            // Validate account data
+            if (account.getFirstName().isEmpty() || account.getLastName().isEmpty() ||
+                account.getEmail().isEmpty() || account.getPhoneNumber().isEmpty()) {
+
+                JOptionPane.showMessageDialog(this,
+                    "First Name, Last Name, Email, and Phone Number are required fields!",
+                    "Validation Error",
+                    JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
+            // Update account in database
+            boolean success = accountDAO.updateAccount(account);
+
+            if (success) {
+                // Exit edit mode
+                isEditMode = false;
+                saveButton.setEnabled(false);
+                cancelButton.setEnabled(false);
+
+                // Refresh the table to show updated data
+                loadData();
+
+                JOptionPane.showMessageDialog(this,
+                    "Account updated successfully!",
+                    "Success",
+                    JOptionPane.INFORMATION_MESSAGE);
+            } else {
+                JOptionPane.showMessageDialog(this,
+                    "Failed to update account!",
+                    "Error",
+                    JOptionPane.ERROR_MESSAGE);
+            }
+
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(this,
+                "Error saving account changes: " + ex.getMessage(),
+                "Save Error",
+                JOptionPane.ERROR_MESSAGE);
+            ex.printStackTrace();
+        }
+    }
+
+    private void cancelEdit(ActionEvent e) {
+        if (!isEditMode) {
+            return; // Do nothing if not in edit mode
+        }
+
+        // Clear fields and reset to view mode
+        clearSidebarFields();
+        saveButton.setEnabled(false);
+        cancelButton.setEnabled(false);
+        isEditMode = false;
     }
 
     private JPanel createSidebarPanel() {
         JPanel sidebarPanel = new JPanel();
         sidebarPanel.setLayout(new BoxLayout(sidebarPanel, BoxLayout.Y_AXIS));
         sidebarPanel.setBackground(SIDEBAR_COLOR);
-        sidebarPanel.setPreferredSize(new Dimension(260, 0));
         sidebarPanel.setBorder(BorderFactory.createCompoundBorder(
                 BorderFactory.createMatteBorder(20, 2, 0, 0, BACKGROUND_COLOR),
                 BorderFactory.createEmptyBorder(15, 15, 15, 15)
@@ -282,46 +466,20 @@ public class AccountManagement extends JFrame {
         sidebarPanel.add(Box.createVerticalStrut(15));
 
         createSidebarFields(sidebarPanel);
-        
-        // Set up actions column after sidebar fields are created
-        table.getColumn("Actions").setCellRenderer(new ActionsRenderer());
-        table.getColumn("Actions").setCellEditor(new ActionsEditor(table, sidebarFields));
-        
-        return sidebarPanel;
-    }
 
-    private void createSidebarFields(JPanel sidebarPanel) {
-        String[] fieldLabels = {"User ID", "First Name:", "Middle Name:", "Last Name:", "Birthday:", 
-                            "Email:", "Phone Number:"};
-        sidebarFields = new ArrayList<>();
+        // Wrap the sidebarPanel in a JScrollPane
+        JScrollPane scrollPane = new JScrollPane(sidebarPanel);
+        scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER); // Disable horizontal scrolling
+        scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED); // Enable vertical scrolling
+        scrollPane.setBorder(BorderFactory.createEmptyBorder()); // Remove default border
 
-        for (String label : fieldLabels) {
-            JPanel fieldPanel = createFieldPanel(label);
-            sidebarPanel.add(fieldPanel);
-            sidebarPanel.add(Box.createVerticalStrut(8));
-        }
-    }
+        // Create a container panel to hold the scroll pane
+        JPanel containerPanel = new JPanel(new BorderLayout());
+        containerPanel.setBackground(SIDEBAR_COLOR);
+        containerPanel.setPreferredSize(new Dimension(260, 0));
+        containerPanel.add(scrollPane, BorderLayout.CENTER);
 
-    private JPanel createFieldPanel(String labelText) {
-        JPanel fieldPanel = new JPanel();
-        fieldPanel.setLayout(new BoxLayout(fieldPanel, BoxLayout.Y_AXIS));
-        fieldPanel.setOpaque(false);
-
-        JLabel fieldLabel = new JLabel(labelText);
-        fieldLabel.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-        fieldLabel.setForeground(Color.BLACK);
-
-        JTextField textField = new JTextField();
-        textField.setFont(new Font("Segoe UI", Font.PLAIN, 13));
-        textField.setMaximumSize(new Dimension(450, 30));
-        textField.setBackground(Color.WHITE);
-        textField.setBorder(BorderFactory.createLineBorder(Color.decode("#C0C0C0")));
-
-        fieldPanel.add(fieldLabel);
-        fieldPanel.add(textField);
-        sidebarFields.add(textField);
-
-        return fieldPanel;
+        return containerPanel;
     }
 
     // Data Management Methods - DAO Implementation
@@ -367,6 +525,9 @@ public class AccountManagement extends JFrame {
                     account.getBirthday(),
                     account.getEmail(),
                     account.getPhoneNumber(),
+                    account.getBarangay() != null ? account.getBarangay() : "",
+                    account.getCity() != null ? account.getCity() : "",
+                    account.getProvince() != null ? account.getProvince() : "",
                     null // Actions column
                 });
                 accountIds.add(account.getId()); // Store account ID for this row
@@ -431,6 +592,14 @@ public class AccountManagement extends JFrame {
     private void viewAccount(int row) {
         try{
 
+            if (sidebarFields == null) {
+                JOptionPane.showMessageDialog(this,
+                    "Sidebar fields not initialized.",
+                    "View Error",
+                    JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
             if (row < 0 || row >= table.getRowCount()) {
                 JOptionPane.showMessageDialog(this,
                     "Invalid row selected for viewing account.",
@@ -439,10 +608,17 @@ public class AccountManagement extends JFrame {
             }
 
             for (int i = 0; i < sidebarFields.size() && i < table.getColumnCount() - 1; i++) {
-            Object val = table.getValueAt(row, i);
-            sidebarFields.get(i).setText(val != null ? val.toString() : "");
+                Object val = table.getValueAt(row, i);
+                sidebarFields.get(i).setText(val != null ? val.toString() : "");
+                sidebarFields.get(i).setEditable(false); // Make fields read-only
 
             System.out.println("Viewing account at row:" + row);
+
+            // Disable Save and Cancel buttons
+            saveButton.setEnabled(false);
+            cancelButton.setEnabled(false);
+
+            isEditMode = false;
 
         }
         }catch (Exception e){
@@ -513,22 +689,26 @@ public class AccountManagement extends JFrame {
     private void clearSidebarFields() {
         for (JTextField field : sidebarFields) {
             field.setText("");
+            field.setEditable(false);
         }
     }
 
     // Inner Classes
     static class ActionsRenderer extends JPanel implements TableCellRenderer {
         private final JButton viewBtn;
+        private final JButton editBtn;
         private final JButton deleteBtn;
 
         public ActionsRenderer() {
-            setLayout(new FlowLayout(FlowLayout.CENTER, 3, 0));
+            setLayout(new FlowLayout(FlowLayout.CENTER, 2, 0));
             setOpaque(true);
 
             viewBtn = createStyledButton("View");
+            editBtn = createStyledButton("Edit");
             deleteBtn = createStyledButton("Delete");
 
             add(viewBtn);
+            add(editBtn);
             add(deleteBtn);
         }
 
@@ -540,7 +720,7 @@ public class AccountManagement extends JFrame {
             button.setForeground(Color.WHITE);
             button.setOpaque(true);
             button.setBorderPainted(false);
-            button.setPreferredSize(new Dimension(60, 25));
+            button.setPreferredSize(new Dimension(40, 25));
             button.setMargin(new Insets(2, 4, 2, 4));
             return button;
         }
@@ -563,6 +743,37 @@ public class AccountManagement extends JFrame {
         }
     }
 
+    private void editAccount(int row) {
+        try {
+            if (row < 0 || row >= table.getRowCount()) {
+                JOptionPane.showMessageDialog(this,
+                    "Invalid row selected for editing.",
+                    "Edit Error",
+                    JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
+            // Populate fields with account data
+            for (int i = 0; i < sidebarFields.size() && i < table.getColumnCount() - 1; i++) {
+                Object val = table.getValueAt(row, i);
+                sidebarFields.get(i).setText(val != null ? val.toString() : "");
+                sidebarFields.get(i).setEditable(true); // Make fields editable
+            }
+
+            // Enable Save and Cancel buttons
+            saveButton.setEnabled(true);
+            cancelButton.setEnabled(true);
+
+            isEditMode = true; // Set mode to edit
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this,
+                "Error editing account: " + e.getMessage(),
+                "Edit Error",
+                JOptionPane.ERROR_MESSAGE);
+            e.printStackTrace();
+        }
+    }
+
     static class ActionsEditor extends AbstractCellEditor implements TableCellEditor {
         private JPanel panel;
         private final JTable table;
@@ -576,10 +787,11 @@ public class AccountManagement extends JFrame {
         public Component getTableCellEditorComponent(JTable tableParam, Object value, 
                 boolean isSelected, int row, int column) {
             this.currentRow = row;
-            panel = new JPanel(new FlowLayout(FlowLayout.CENTER, 3, 0));
+            panel = new JPanel(new FlowLayout(FlowLayout.CENTER, 2, 0));
             panel.setOpaque(true);
 
             JButton viewBtn = createStyledButton("View");
+            JButton editBtn = createStyledButton("Edit");
             JButton deleteBtn = createStyledButton("Delete");
 
             viewBtn.addActionListener(e -> {
@@ -587,6 +799,16 @@ public class AccountManagement extends JFrame {
                     AccountManagement parent = (AccountManagement) SwingUtilities.getWindowAncestor(table);
                     if (parent != null) {
                         parent.viewAccount(currentRow);
+                    }
+                    fireEditingStopped();
+                });
+            });
+
+            editBtn.addActionListener(e -> { // Define Edit button behavior
+                SwingUtilities.invokeLater(() -> {
+                    AccountManagement parent = (AccountManagement) SwingUtilities.getWindowAncestor(table);
+                    if (parent != null) {
+                        parent.editAccount(currentRow); // Call editAccount method
                     }
                     fireEditingStopped();
                 });
@@ -602,6 +824,7 @@ public class AccountManagement extends JFrame {
             });
 
             panel.add(viewBtn);
+            panel.add(editBtn);
             panel.add(deleteBtn);
             panel.setBackground(isSelected ? tableParam.getSelectionBackground() : tableParam.getBackground());
             return panel;
@@ -615,7 +838,7 @@ public class AccountManagement extends JFrame {
             button.setForeground(Color.WHITE);
             button.setOpaque(true);
             button.setBorderPainted(false);
-            button.setPreferredSize(new Dimension(60, 25));
+            button.setPreferredSize(new Dimension(40, 25));
             button.setMargin(new Insets(2, 4, 2, 4));
             
             button.addMouseListener(new java.awt.event.MouseAdapter() {

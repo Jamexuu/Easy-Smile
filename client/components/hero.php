@@ -2,6 +2,30 @@
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
+
+require_once 'client/utils/Connection/db_connection.php';
+
+$appointments = [];
+if (isset($_SESSION['user_id'])) {
+    $conn = create_connection();
+    if ($conn) {
+        $userId = $_SESSION['user_id'];
+        $sql = "SELECT AppointmentID, AppointmentDate, AppointmentTime 
+                FROM AppointmentTbl 
+                WHERE ScheduledBy = ? AND AppointmentDate >= CURDATE() AND Status = 'Upcoming' 
+                ORDER BY AppointmentDate ASC";
+        $stmt = $conn->prepare($sql);
+        $stmt->bind_param("s", $userId);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        while ($row = $result->fetch_assoc()) {
+            $appointments[] = $row;
+        }
+        $stmt->close();
+        $conn->close();
+    }
+}
+
 ?>
 <section class="hero">
     
@@ -11,12 +35,19 @@ if (session_status() === PHP_SESSION_NONE) {
             <a href="client/utils/logout.php" class="log-out-link">Log Out</a>
         </div>
         
-        <a href="view_appointment.php" class="appointment-link"></a>
         <div class="appointment-box">
-            <div class="appointment-info">
-                <p>Upcoming Appointment:</p>
-                <p>May 31, Saturday</p>
-            </div>
+            <p>Upcoming Appointment:</p>
+            <?php if (!empty($appointments)): ?>
+                <?php foreach ($appointments as $appointment): ?>
+                    <div class="appointment-info">
+                        <a href="client/utils/view_appointment.php?id=<?= htmlspecialchars($appointment['AppointmentID']) ?>" class="appointment-link">
+                            <p><?= htmlspecialchars(date('F j, l', strtotime($appointment['AppointmentDate']))) ?> at <?= htmlspecialchars($appointment['AppointmentTime']) ?></p>
+                        </a>
+                    </div>
+                <?php endforeach; ?>
+            <?php else: ?>
+                <p>No upcoming appointments.</p>
+            <?php endif; ?>
         </div>
         
     <?php else: ?>

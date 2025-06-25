@@ -1,50 +1,58 @@
-<!-- Rest of your content remains the same -->
-    <div class="services-banner">
-        Services Offered
-    </div>
-    
-    <!-- Main content -->
-    <div class="services-grid">
-        <!-- Service rows and items with descriptions and prices -->
-        <div class="services-row">
-            <div class="service-item">
-                <img src="client/static/images/braces_icon.png" alt="Braces">
-                <span class="service-name">Braces</span>
-                <p class="service-description">Aligns teeth and corrects bite issues using metal, ceramic, or clear brackets for a straighter smile.</p>
-                <div class="service-price">Starting at ₱40,000</div>
-            </div>
-            <div class="service-item">
-                <img src="client/static/images/retainers_icon.png" alt="Retainers">
-                <span class="service-name">Retainers</span>
-                <p class="service-description">Custom-made devices worn after braces to keep teeth in their new, correct position.</p>
-                <div class="service-price">Starting at ₱3,000</div>
-            </div>
-            <div class="service-item">
-                <img src="client/static/images/surgeries_icon.png" alt="Surgeries">
-                <span class="service-name">Surgeries</span>
-                <p class="service-description">Includes procedures like impacted tooth removal, gum surgery, or minor oral operations.</p>
-                <div class="service-price">Starting at ₱5,000</div>
-            </div>
-        </div>
-        <div class="services-row">
-            <div class="service-item">
-                <img src="client/static/images/checkup_icon.png" alt="Checkup">
-                <span class="service-name">Checkup</span>
-                <p class="service-description">Comprehensive dental examination to monitor oral health and detect potential issues early.</p>
-                <div class="service-price">₱500</div>
-            </div>
-            <div class="service-item">
-                <img src="client/static/images/deep_cleaning_icon.png" alt="Deep Cleaning">
-                <span class="service-name">Deep Cleaning</span>
-                <p class="service-description">Thorough cleaning that removes plaque and tartar below the gum line to treat gum disease.</p>
-                <div class="service-price">Starting at ₱2,500</div>
-            </div>
-            <div class="service-item">
-                <img src="client/static/images/tooth_extraction_icon.png" alt="Tooth Extractions">
-                <span class="service-name">Tooth Extractions</span>
-                <p class="service-description">Safe and gentle removal of damaged, decayed, or impacted teeth when necessary.</p>
-                <div class="service-price">Starting at ₱1,500</div>
-            </div>
-        </div>
-    </div>
+<div class="services-banner" style="background-color: #4da0ff; color: white; padding: 20px 40px; font-size: 32px; font-weight: bold;">
+    Services Offered
 </div>
+
+<div class="services-grid" id="services-grid">
+    <!-- Dynamic content will be loaded here -->
+</div>
+
+<script>
+    fetch('client/utils/DAO/fetch_services_info.php')
+        .then(response => response.json())
+        .then(data => {
+            if (data.error) {
+                console.error(data.error);
+                return;
+            }
+
+            const servicesGrid = document.getElementById('services-grid');
+            servicesGrid.innerHTML = ''; // Clear existing content
+
+            // Force grid layout with inline CSS
+            servicesGrid.style.display = 'grid';
+            servicesGrid.style.gridTemplateColumns = 'repeat(3, 1fr)';
+            servicesGrid.style.gap = '50px';
+            servicesGrid.style.padding = '40px';
+            servicesGrid.style.maxWidth = '1400px';
+            servicesGrid.style.margin = '50px auto';
+
+            data.forEach(service => {
+                const serviceItem = document.createElement('div');
+                serviceItem.classList.add('service-item');
+                
+                // Add inline styles to match the screenshot - fix the text wrapping issue
+                serviceItem.style.display = 'flex';
+                serviceItem.style.flexDirection = 'column';
+                serviceItem.style.alignItems = 'center';
+                serviceItem.style.textAlign = 'center';
+                serviceItem.style.padding = '20px';
+                serviceItem.style.width = '100%'; // Ensure item takes full width in grid cell
+                serviceItem.style.boxSizing = 'border-box'; // Include padding in width calculation
+                serviceItem.style.position = 'relative'; // Ensure proper layout
+
+                // Use the correct icon naming format
+                const iconName = service.ServiceName.toLowerCase().replace(/\s+/g, '_');
+                
+                // Dynamically create service content matching the screenshot
+                serviceItem.innerHTML = `
+                    <img src="client/static/images/${iconName}_icon.png" alt="${service.ServiceName}" style="width: 80px; height: 80px; margin-bottom: 20px;">
+                    <h3 style="font-size: 18px; font-weight: bold; color: #333; margin-bottom: 10px; width: 100%;">${service.ServiceName}</h3>
+                    <div style="font-size: 14px; color: #666; line-height: 1.6; margin-bottom: 15px; width: 100%; white-space: normal;">${service.ServiceDesc}</div>
+                    <div style="font-size: 16px; font-weight: 500; color: #333;">Starting at ₱${service.StartingPrice}</div>
+                `;
+
+                servicesGrid.appendChild(serviceItem);
+            });
+        })
+        .catch(error => console.error('Error fetching services data:', error));
+</script>

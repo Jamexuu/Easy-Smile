@@ -1,3 +1,9 @@
+body {
+    background-color: #f9f9f9;
+    margin: 0;
+    font-family: 'Poppins', sans-serif;
+    color: #333;
+}
 
 .appointment-view-container {
     max-width: 500px;
@@ -7,11 +13,28 @@
     border-radius: 4px;
 }
 
+.container {
+    max-width: 800px;
+    margin: 30px auto;
+    padding: 20px;
+    background-color: #ffffff;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
 h1 {
     color: #333;
     font-size: 28px;
     font-weight: 500;
     margin-bottom: 20px;
+}
+
+h2 {
+    color: #1976d2;
+    font-size: 24px;
+    font-weight: 600;
+    margin-bottom: 20px;
+    text-align: center;
 }
 
 .appointment-date {
@@ -112,4 +135,45 @@ h1 {
 
 .home-btn:hover {
     background-color: #7f8c8d;
+}
+
+.section {
+    margin-bottom: 30px;
+    padding: 20px;
+    background-color: #f5f5f5;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.section p {
+    font-size: 16px;
+    margin-bottom: 10px;
+    line-height: 1.5;
+}
+
+.section p strong {
+    font-weight: bold;
+    color: #333;
+}
+
+.appointment-section {
+    border-left: 4px solid #1976d2;
+    padding-left: 15px;
+}
+
+.patient-section {
+    border-left: 4px solid #27ae60;
+    padding-left: 15px;
+}
+
+.address-section {
+    border-left: 4px solid #e74c3c;
+    padding-left: 15px;
+}
+
+footer {
+    text-align: center;
+    margin-top: 40px;
+    font-size: 14px;
+    color: #888;
 }

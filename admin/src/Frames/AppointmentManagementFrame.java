@@ -2,6 +2,7 @@ package Frames;
 
 import javax.swing.*;
 import javax.swing.border.Border;
+import javax.swing.event.TableModelListener;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableCellRenderer;
@@ -34,7 +35,11 @@ public class AppointmentManagementFrame extends JFrame {
     private PatientDAO patientDAO; // Added for patient data lookup
     private ServicesDAO servicesDAO = new ServicesDAO();
     private AccountManagementDAO accountDAO = new AccountManagementDAO();
-    private List<Integer> appointmentIds;
+    private List<Integer> upcomingAppointmentIds = new ArrayList<>();
+    private List<Integer> completedAppointmentIds = new ArrayList<>();
+    private List<Integer> canceledAppointmentIds = new ArrayList<>();
+    private int activeTabIndex = 0;
+
     private java.util.Map<String, JTextField> fieldInputs;
     
     // UI Components
@@ -47,15 +52,14 @@ public class AppointmentManagementFrame extends JFrame {
     private JTextField searchBar;
     private List<JTextField> sidebarFields;
 
-    private JButton saveButton;
-    private JButton cancelButton;
     private boolean editMode = false;
-    private int currentEditingRow = -1;
 
     //appointment status
     private JComboBox<String> statusComboBox;
     private JLabel createdAtLabel;
     private JLabel updatedAtLabel;
+
+    private JTabbedPane tabbedPane;
 
     private JLabel statusValueLabel;
 
@@ -69,7 +73,6 @@ public class AppointmentManagementFrame extends JFrame {
         servicesDAO = new ServicesDAO();
         accountDAO = new AccountManagementDAO();
         patientDAO = new PatientDAO();
-        appointmentIds = new ArrayList<>();
         fieldInputs = new java.util.HashMap<>();
         sidebarFields = new ArrayList<>();
         
@@ -101,6 +104,11 @@ public class AppointmentManagementFrame extends JFrame {
         setExtendedState(JFrame.MAXIMIZED_BOTH);
         setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         setVisible(true);
+    }
+
+    // Add this method to your AppointmentManagementFrame class
+    private void debugStatus(String message) {
+        System.out.println("[STATUS DEBUG " + new java.text.SimpleDateFormat("HH:mm:ss.SSS").format(new java.util.Date()) + "] " + message);
     }
     
     private void createComponents() {
@@ -227,15 +235,15 @@ public class AppointmentManagementFrame extends JFrame {
         contentPanel.setBackground(Color.WHITE);
         contentPanel.setOpaque(true);
         
-        JTabbedPane appointmentTabs = createTabsPanel();
-        contentPanel.add(appointmentTabs, BorderLayout.CENTER);
+        JTabbedPane tabbedPane = createTabsPanel();
+        contentPanel.add(tabbedPane, BorderLayout.CENTER);
 
         sidebarPanel = createSidebarPanel();
         contentPanel.add(sidebarPanel, BorderLayout.EAST);
 
-        appointmentTabs.addChangeListener(e -> {
-            int selectedIndex = appointmentTabs.getSelectedIndex();
-            String selectedTitle = appointmentTabs.getTitleAt(selectedIndex);
+        tabbedPane.addChangeListener(e -> {
+            int selectedIndex = tabbedPane.getSelectedIndex();
+            String selectedTitle = tabbedPane.getTitleAt(selectedIndex);
             if ("CALENDAR".equalsIgnoreCase(selectedTitle)) {
                 if (sidebarPanel != null) {
                     sidebarPanel.removeAll();
@@ -254,10 +262,10 @@ public class AppointmentManagementFrame extends JFrame {
     }
     
     private JTabbedPane createTabsPanel() {
-        JTabbedPane appointmentTabs = new JTabbedPane();
+        tabbedPane = new JTabbedPane();
 
         // Create table models - Updated column names to match actual data
-        String[] appointmentColumns = {"Appointment ID", "Patient Full Name", "Service Desc.", "Date", "Time", "Email", "Status", "Actions"};
+        String[] appointmentColumns = {"Appointment ID", "Patient Full Name", "Service Name", "Date", "Time", "Email", "Status", "Actions"};
         String[] statusOptions = {"Upcoming", "Completed", "Canceled"};
 
         upcomingModel = new DefaultTableModel(appointmentColumns, 0) {
@@ -280,25 +288,96 @@ public class AppointmentManagementFrame extends JFrame {
             }
         };
 
-        upcomingModel.addTableModelListener(e -> {
+        tabbedPane.addChangeListener(e -> {
+            activeTabIndex = tabbedPane.getSelectedIndex();
+            // Clear sidebar when switching tabs
+            clearSidebarFields();
+            debugStatus("Switched to tab index: " + activeTabIndex);
+        });
+
+        // Create the TableModelListener as a separate variable
+        final TableModelListener[] statusListenerRef = new TableModelListener[1];
+
+        statusListenerRef[0] = e -> {
             if (e.getType() == javax.swing.event.TableModelEvent.UPDATE && e.getColumn() == 6) {
                 int row = e.getFirstRow();
                 String appointmentId = (String) upcomingModel.getValueAt(row, 0);
                 String newStatus = (String) upcomingModel.getValueAt(row, 6);
-                // Update the status in the database
+                
+                debugStatus("Status change detected for appointment: " + appointmentId);
+                debugStatus("New status requested: " + newStatus);
+                
+                // Store the old status to revert if needed
+                String oldStatus = "";
                 try {
-                    int internalId = appointmentIds.get(row);
+                    int internalId = upcomingAppointmentIds.get(row);
+                    debugStatus("Looking up appointment with internal ID: " + internalId);
+                    
                     Appointment appointment = appointmentDAO.getAppointmentById(internalId);
                     if (appointment != null) {
-                        appointment.setStatus(newStatus);
-                        appointmentDAO.updateAppointment(appointment);
-                        loadData(); // Refresh tables to move row if needed
+                        oldStatus = appointment.getStatus();
+                        debugStatus("Current status in DB: " + oldStatus);
+                        
+                        // Show confirmation dialog
+                        int confirm = JOptionPane.showConfirmDialog(
+                            this,
+                            "Are you sure you want to change the status from \"" + oldStatus + "\" to \"" + newStatus + "\"?",
+                            "Confirm Status Change",
+                            JOptionPane.YES_NO_OPTION,
+                            JOptionPane.QUESTION_MESSAGE
+                        );
+                        
+                        debugStatus("User response: " + (confirm == JOptionPane.YES_OPTION ? "YES" : "NO"));
+                        
+                        if (confirm == JOptionPane.YES_OPTION) {
+                            // User confirmed, update the status
+                            debugStatus("Setting status to: " + newStatus);
+                            appointment.setStatus(newStatus);
+                            
+                            debugStatus("Sending update to database...");
+                            boolean updateSuccess = appointmentDAO.updateAppointment(appointment);
+                            debugStatus("Database update result: " + (updateSuccess ? "SUCCESS" : "FAILED"));
+                            
+                            if (updateSuccess) {
+                                debugStatus("Refreshing UI data...");
+                                loadData();
+                                
+                                // Switch to the appropriate tab based on the new status
+                                if ("Completed".equalsIgnoreCase(newStatus)) {
+                                    debugStatus("Switching to Completed tab");
+                                    tabbedPane.setSelectedIndex(1); // Index for "Completed" tab
+                                } else if ("Canceled".equalsIgnoreCase(newStatus)) {
+                                    debugStatus("Switching to Canceled tab");
+                                    tabbedPane.setSelectedIndex(2); // Index for "Canceled" tab
+                                }
+                                debugStatus("Status update complete");
+                            }
+                        } else {
+                            // User canceled, revert the change in the table
+                            debugStatus("Reverting UI back to: " + oldStatus);
+                            upcomingModel.removeTableModelListener(statusListenerRef[0]);
+                            upcomingModel.setValueAt(oldStatus, row, 6); // Revert to old status
+                            upcomingModel.addTableModelListener(statusListenerRef[0]);
+                        }
+                    } else {
+                        debugStatus("ERROR: Appointment not found with ID: " + internalId);
                     }
                 } catch (Exception ex) {
-                    JOptionPane.showMessageDialog(this, "Failed to update status: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+                    debugStatus("EXCEPTION during status update: " + ex.getMessage());
+                    debugStatus("Exception type: " + ex.getClass().getName());
+                    ex.printStackTrace();
+                    
+                    // Revert to old status in case of error
+                    debugStatus("Reverting UI due to error");
+                    upcomingModel.removeTableModelListener(statusListenerRef[0]);
+                    upcomingModel.setValueAt(oldStatus, row, 6);
+                    upcomingModel.addTableModelListener(statusListenerRef[0]);
                 }
             }
-        });
+        };
+
+        // Add the listener to the model
+        upcomingModel.addTableModelListener(statusListenerRef[0]);
 
         // Create tables
         upcomingTable = createTable(upcomingModel);
@@ -313,17 +392,46 @@ public class AppointmentManagementFrame extends JFrame {
         setupTableActionsColumn(canceledTable, 7, "delete");
 
         // Add tables to tabs
-        appointmentTabs.addTab("UPCOMING", new JScrollPane(upcomingTable));
-        appointmentTabs.addTab("COMPLETED", new JScrollPane(completedTable));
-        appointmentTabs.addTab("CANCELED", new JScrollPane(canceledTable));
-        appointmentTabs.addTab("CALENDAR", new CalendarPanel());
+        tabbedPane.addTab("UPCOMING", new JScrollPane(upcomingTable));
+        tabbedPane.addTab("COMPLETED", new JScrollPane(completedTable));
+        tabbedPane.addTab("CANCELED", new JScrollPane(canceledTable));
+        tabbedPane.addTab("CALENDAR", new CalendarPanel());
 
-        // JPanel tabsPanel = new JPanel(new BorderLayout());
-        // tabsPanel.setOpaque(false);
-        // tabsPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 5));
-        // tabsPanel.add(appointmentTabs, BorderLayout.CENTER);
+        setupTableListeners();
+        return tabbedPane;
+    }
 
-        return appointmentTabs;
+    private void setupTableListeners() {
+        // Setup table selection listeners for each tab
+        upcomingTable.getSelectionModel().addListSelectionListener(e -> {
+            if (!e.getValueIsAdjusting()) {
+                int selectedRow = upcomingTable.getSelectedRow();
+                if (selectedRow >= 0) {
+                    activeTabIndex = 0; // Ensure upcoming tab is active
+                    viewAppointment(selectedRow);
+                }
+            }
+        });
+        
+        completedTable.getSelectionModel().addListSelectionListener(e -> {
+            if (!e.getValueIsAdjusting()) {
+                int selectedRow = completedTable.getSelectedRow();
+                if (selectedRow >= 0) {
+                    activeTabIndex = 1; // Ensure completed tab is active
+                    viewAppointment(selectedRow);
+                }
+            }
+        });
+        
+        canceledTable.getSelectionModel().addListSelectionListener(e -> {
+            if (!e.getValueIsAdjusting()) {
+                int selectedRow = canceledTable.getSelectedRow();
+                if (selectedRow >= 0) {
+                    activeTabIndex = 2; // Ensure canceled tab is active
+                    viewAppointment(selectedRow);
+                }
+            }
+        });
     }
     
     private JTable createTable(DefaultTableModel model) {
@@ -405,25 +513,6 @@ public class AppointmentManagementFrame extends JFrame {
         buttonPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
         buttonPanel.setMaximumSize(new Dimension(400, 40));
         
-        saveButton = new JButton("Save Changes");
-        saveButton.setFont(BTN_FONT);
-        saveButton.setBackground(BLUE_COLOR);
-        saveButton.setForeground(Color.WHITE);
-        saveButton.setFocusPainted(false);
-        saveButton.addActionListener(this::saveAppointmentChanges);
-        saveButton.setVisible(false); // Initially hidden
-        
-        cancelButton = new JButton("Cancel");
-        cancelButton.setFont(BTN_FONT);
-        cancelButton.setBackground(Color.LIGHT_GRAY);
-        cancelButton.setForeground(Color.BLACK);
-        cancelButton.setFocusPainted(false);
-        cancelButton.addActionListener(this::cancelEdit);
-        cancelButton.setVisible(false); // Initially hidden
-        
-        buttonPanel.add(saveButton);
-        buttonPanel.add(cancelButton);
-        
         sidebarPanel.add(Box.createVerticalStrut(10));
         sidebarPanel.add(buttonPanel);
         
@@ -435,7 +524,7 @@ public class AppointmentManagementFrame extends JFrame {
         String[] fieldLabels = {
             "Appointment ID:", 
             "Patient Full Name:", 
-            "Service Description:", 
+            "Service Name:", 
             "Email:", 
             "Appointment Date:", 
             "Appointment Time:", 
@@ -567,31 +656,48 @@ public class AppointmentManagementFrame extends JFrame {
         upcomingModel.setRowCount(0);
         completedModel.setRowCount(0);
         canceledModel.setRowCount(0);
-        appointmentIds.clear();
-        
+
+        upcomingAppointmentIds.clear();
+        completedAppointmentIds.clear();
+        canceledAppointmentIds.clear();
+
         for (Appointment appointment : appointments) {
-            // Fetch patient full name
+            // Fetch patient full name - improved error handling
             String patientFullName = "";
             try {
-                var patient = patientDAO.getPatientByFormattedId(appointment.getPatientId());
-                if (patient != null) {
-                    patientFullName = patient.getFullName();
+                // First try to get from already set patientFullName field if it exists
+                if (appointment.getPatientFullName() != null && !appointment.getPatientFullName().isEmpty()) {
+                    patientFullName = appointment.getPatientFullName();
+                } else {
+                    // If not available, try to fetch from patient table
+                    var patient = patientDAO.getPatientByFormattedId(appointment.getPatientId());
+                    if (patient != null) {
+                        patientFullName = patient.getFullName();
+                        // Also set it on the appointment object for future use
+                        appointment.setPatientFullName(patientFullName);
+                    } else {
+                        // Last resort, display the ID with a note
+                        patientFullName = "Patient: " + appointment.getPatientId();
+                    }
                 }
             } catch (Exception ex) {
-                patientFullName = appointment.getPatientId();
+                // If anything fails, at least display something useful
+                patientFullName = "Patient: " + appointment.getPatientId();
+                System.err.println("Error fetching patient name: " + ex.getMessage());
             }
 
-            String serviceDesc = appointment.getServiceId();
+            // Change from serviceDesc to serviceName
+            String serviceName = appointment.getServiceId();
             try {
                 var service = servicesDAO.getServiceByFormattedId(appointment.getServiceId());
-                if (service != null && service.getServiceDesc() != null) {
-                    serviceDesc = service.getServiceDesc();
+                if (service != null && service.getServiceName() != null) {
+                    serviceName = service.getServiceName();
                 }
             } catch (Exception ex) {
-                serviceDesc = appointment.getServiceId();
+                serviceName = appointment.getServiceId();
             }
 
-            // Fetch scheduled by email
+            // Fetch patient email
             String email = "";
             try {
                 var account = accountDAO.getAccountByFormattedId(appointment.getScheduledBy());
@@ -605,24 +711,28 @@ public class AppointmentManagementFrame extends JFrame {
             Object[] rowData = {
                 appointment.getAppointmentId(),
                 patientFullName,
-                serviceDesc,
+                serviceName,  // Changed from serviceDesc to serviceName
                 appointment.getAppointmentDate(),
                 appointment.getAppointmentTime(),
                 email,
                 appointment.getStatus(),
                 "Actions"
             };
-            appointmentIds.add(appointment.getInternalId());
+            // appointmentIds.add(appointment.getInternalId());
 
             String status = appointment.getStatus();
             if ("Upcoming".equalsIgnoreCase(status)) {
                 upcomingModel.addRow(rowData);
+                upcomingAppointmentIds.add(appointment.getInternalId());
             } else if ("Completed".equalsIgnoreCase(status)) {
                 completedModel.addRow(rowData);
+                completedAppointmentIds.add(appointment.getInternalId());
             } else if ("Canceled".equalsIgnoreCase(status)) {
                 canceledModel.addRow(rowData);
+                canceledAppointmentIds.add(appointment.getInternalId());
             }
         }
+        clearSidebarFields();
     }
     
     // Event Handlers
@@ -673,47 +783,41 @@ public class AppointmentManagementFrame extends JFrame {
         try {
             if (editMode) setEditMode(false);
 
-            if (row >= 0 && row < appointmentIds.size()) {
-                int appointmentInternalId = appointmentIds.get(row);
+            if(row < 0){
+                clearSidebarFields();
+                return;
+            }
+
+            List<Integer> activeAppointmentIds;
+
+            switch (activeTabIndex) {
+                case 0:
+                    activeAppointmentIds = upcomingAppointmentIds;
+                    break;
+                case 1:
+                    activeAppointmentIds = completedAppointmentIds;
+                    break;
+                case 2:
+                    activeAppointmentIds = canceledAppointmentIds;
+                    break;
+                default:
+                    activeAppointmentIds = upcomingAppointmentIds;
+                    break;
+            }
+
+            if (activeAppointmentIds != null && row < activeAppointmentIds.size()) {
+                int appointmentInternalId = activeAppointmentIds.get(row);
                 Appointment appointment = appointmentDAO.getAppointmentById(appointmentInternalId);
-
-                // Fetch patient full name
-                String patientFullName = "";
-                try {
-                    var patient = patientDAO.getPatientByFormattedId(appointment.getPatientId());
-                    if (patient != null) {
-                        patientFullName = patient.getFullName();
-                    }
-                } catch (Exception ex) {
-                    patientFullName = appointment.getPatientId();
-                }
-
-                // Fetch service description
-                String serviceDesc = appointment.getServiceId();
-                try {
-                    var service = servicesDAO.getServiceByFormattedId(appointment.getServiceId());
-                    if (service != null && service.getServiceDesc() != null) {
-                        serviceDesc = service.getServiceDesc();
-                    }
-                } catch (Exception ex) {
-                    serviceDesc = appointment.getServiceId();
-                }
-
-                String email = appointment.getScheduledBy();
-                try {
-                    var account = accountDAO.getAccountByFormattedId(appointment.getScheduledBy());
-                    if (account != null && account.getEmail() != null) {
-                        email = account.getEmail();
-                    }
-                } catch (Exception ex) {
-                    email = appointment.getScheduledBy();
-                }
 
                 if (appointment != null) {
                     fieldInputs.get("Appointment ID:").setText(appointment.getAppointmentId() != null ? appointment.getAppointmentId() : "");
-                    fieldInputs.get("Patient Full Name:").setText(patientFullName);
-                    fieldInputs.get("Service Description:").setText(serviceDesc);
-                    fieldInputs.get("Email:").setText(email);
+                    
+                    // Use the patientFullName and patientEmail fields directly
+                    fieldInputs.get("Patient Full Name:").setText(appointment.getPatientFullName() != null ? appointment.getPatientFullName() : "");
+                    fieldInputs.get("Email:").setText(appointment.getPatientEmail() != null ? appointment.getPatientEmail() : "");
+                    
+                    // Service name is already handled
+                    fieldInputs.get("Service Name:").setText(appointment.getServiceId() != null ? appointment.getServiceId() : "");
                     fieldInputs.get("Appointment Date:").setText(appointment.getAppointmentDate() != null ? appointment.getAppointmentDate() : "");
                     fieldInputs.get("Appointment Time:").setText(appointment.getAppointmentTime() != null ? appointment.getAppointmentTime() : "");
 
@@ -721,9 +825,17 @@ public class AppointmentManagementFrame extends JFrame {
                     if (statusValueLabel != null) {
                         statusValueLabel.setText(status != null ? status : "N/A");
                     }
-                    createdAtLabel.setText(appointment.getCreatedAt() != null ? appointment.getCreatedAt() : "N/A");
-                    updatedAtLabel.setText(appointment.getUpdatedAt() != null ? appointment.getUpdatedAt() : "N/A");
+                    
+                    if (createdAtLabel != null) {
+                        createdAtLabel.setText(appointment.getCreatedAt() != null ? appointment.getCreatedAt() : "N/A");
+                    }
+                    
+                    if (updatedAtLabel != null) {
+                        updatedAtLabel.setText(appointment.getUpdatedAt() != null ? appointment.getUpdatedAt() : "N/A");
+                    }
                 }
+            }else{
+                clearSidebarFields();
             }
         } catch (Exception e) {
             clearSidebarFields();
@@ -744,8 +856,25 @@ public class AppointmentManagementFrame extends JFrame {
         if (confirm == JOptionPane.YES_OPTION) {
             setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
             try {
-                if (row >= 0 && row < appointmentIds.size()) {
-                    int appointmentInternalId = appointmentIds.get(row);
+                List<Integer> activeAppointmentIds = null;
+                
+                switch (activeTabIndex) {
+                    case 0:
+                        activeAppointmentIds = upcomingAppointmentIds;
+                        break;
+                    case 1:
+                        activeAppointmentIds = completedAppointmentIds;
+                        break;
+                    case 2:
+                        activeAppointmentIds = canceledAppointmentIds;
+                        break;
+                    default:
+                        activeAppointmentIds = upcomingAppointmentIds;
+                        break;
+                }
+                
+                if (activeAppointmentIds != null && row >= 0 && row < activeAppointmentIds.size()) {
+                    int appointmentInternalId = activeAppointmentIds.get(row);
                     boolean success = appointmentDAO.deleteAppointment(appointmentInternalId);
                     
                     if (success) {
@@ -777,13 +906,18 @@ public class AppointmentManagementFrame extends JFrame {
     
     private void clearSidebarFields() {
         for (JTextField field : sidebarFields) {
-            field.setText("");
+            field.setText("");  
         }
         if (statusValueLabel != null) {
             statusValueLabel.setText("N/A");
         }
-        createdAtLabel.setText("N/A");
-        updatedAtLabel.setText("N/A");
+        // Add null checks for these labels
+        if (createdAtLabel != null) {
+            createdAtLabel.setText("N/A");
+        }
+        if (updatedAtLabel != null) {
+            updatedAtLabel.setText("N/A");
+        }
     }
     
     // Inner Classes for Table Actions
@@ -978,13 +1112,13 @@ public class AppointmentManagementFrame extends JFrame {
         // Show all appointments in the sidebar as a multi-line label
         StringBuilder sb = new StringBuilder("<html>");
         for (Object[] appt : appointments) {
-            // appt[0]=id, appt[1]=serviceDesc, appt[2]=time, appt[3]=display, appt[4]=status (add status if not present)
+            // appt[0]=id, appt[1]=serviceName, appt[2]=time, appt[3]=display, appt[4]=status (add status if not present)
             String id = appt[0].toString();
-            String serviceDesc = appt[1].toString();
+            String serviceName = appt[1].toString();
             String time = appt[2].toString();
             String status = appt.length > 4 ? appt[4].toString() : "";
             sb.append("<b>").append(id).append("</b><br>")
-            .append(time).append(" - ").append(serviceDesc)
+            .append(time).append(" - ").append(serviceName)
             .append("<br>Status: ").append(status)
             .append("<br><br>");
         }
@@ -1001,7 +1135,7 @@ public class AppointmentManagementFrame extends JFrame {
         
         // Make other fields editable or read-only based on edit mode
         fieldInputs.get("Patient Full Name:").setEditable(enabled);
-        fieldInputs.get("Service Desc.:").setEditable(enabled);
+        fieldInputs.get("Service Name:").setEditable(enabled);
         fieldInputs.get("Email:").setEditable(enabled);
         fieldInputs.get("Appointment Date:").setEditable(enabled);
         fieldInputs.get("Appointment Time:").setEditable(enabled);
@@ -1016,109 +1150,6 @@ public class AppointmentManagementFrame extends JFrame {
                 field.setBackground(Color.WHITE);
             }
         }
-        
-        // Show or hide save/cancel buttons based on edit mode
-        if (saveButton != null && cancelButton != null) {
-            saveButton.setVisible(enabled);
-            cancelButton.setVisible(enabled);
-        }
-    }
-
-    private void saveAppointmentChanges(ActionEvent e) {
-        try {
-            // Get the appointment ID from the first field
-            String appointmentId = fieldInputs.get("Appointment ID:").getText();
-            
-            if (appointmentId.isEmpty()) {
-                JOptionPane.showMessageDialog(this, 
-                    "Invalid appointment ID!", 
-                    "Error", 
-                    JOptionPane.ERROR_MESSAGE);
-                return;
-            }
-            
-            // Create appointment object from fields
-            Appointment appointment = new Appointment();
-            appointment.setAppointmentId(appointmentId);
-            appointment.setPatientId(fieldInputs.get("Patient Full Name:").getText());
-            appointment.setServiceId(fieldInputs.get("Service Description:").getText());
-            appointment.setScheduledBy(fieldInputs.get("Email:").getText());
-            appointment.setAppointmentDate(fieldInputs.get("Appointment Date:").getText());
-            appointment.setAppointmentTime(fieldInputs.get("Appointment Time:").getText());
-            appointment.setAppointmentDateTime(
-                appointment.getAppointmentDate() + " " + appointment.getAppointmentTime()
-            );
-            appointment.setStatus(statusComboBox.getSelectedItem().toString());
-            
-            // Set the internal ID
-            if (currentEditingRow >= 0 && currentEditingRow < appointmentIds.size()) {
-                appointment.setInternalId(appointmentIds.get(currentEditingRow));
-            }
-            
-            // Validate appointment data
-            if (appointment.getPatientId().isEmpty() || 
-                appointment.getServiceId().isEmpty() || 
-                appointment.getAppointmentDate().isEmpty() || 
-                appointment.getAppointmentTime().isEmpty()) {
-                
-                JOptionPane.showMessageDialog(this, 
-                    "Patient ID, Service ID, Date and Time are required fields!", 
-                    "Validation Error", 
-                    JOptionPane.ERROR_MESSAGE);
-                return;
-            }
-            
-            // Update appointment in database
-            boolean success = appointmentDAO.updateAppointment(appointment);
-            
-            if (success) {
-                // Exit edit mode
-                setEditMode(false);
-                
-                // Refresh the tables to show updated data
-                loadData();
-                
-                JOptionPane.showMessageDialog(this, 
-                    "Appointment updated successfully!", 
-                    "Success", 
-                    JOptionPane.INFORMATION_MESSAGE);
-            } else {
-                JOptionPane.showMessageDialog(this, 
-                    "Failed to update appointment!", 
-                    "Error", 
-                    JOptionPane.ERROR_MESSAGE);
-            }
-            
-        } catch (Exception ex) {
-            JOptionPane.showMessageDialog(this, 
-                "Error saving appointment changes: " + ex.getMessage(), 
-                "Save Error", 
-                JOptionPane.ERROR_MESSAGE);
-            ex.printStackTrace();
-        }
-    }
-
-    private void cancelEdit(ActionEvent e) {
-        int confirm = JOptionPane.showConfirmDialog(this,
-            "Are you sure you want to cancel editing? All changes will be lost.",
-            "Confirm Cancel",
-            JOptionPane.YES_NO_OPTION);
-            
-        if (confirm == JOptionPane.YES_OPTION) {
-            setEditMode(false);
-            
-            // Refresh the fields from the table data if there's a selected row
-            if (currentEditingRow >= 0) {
-                viewAppointment(currentEditingRow);
-            } else {
-                clearSidebarFields();
-            }
-        }
-    }
-        
-    // Keep the old appointment method for backward compatibility
-    public void appointment() {
-        initialize();
     }
     
     public static void main(String[] args) {

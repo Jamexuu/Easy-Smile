@@ -9,7 +9,9 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.EventObject;
+import java.util.HashMap;
 
 public class PatientManagementFrame extends JFrame {
     final private Font mainFont = new Font("Segoe Ui", Font.PLAIN, 16);
@@ -203,13 +205,13 @@ public class PatientManagementFrame extends JFrame {
     }
 
     private void createTable() {
-        String[] columnNames = {"Patient ID", "First Name", "Middle Name", "Last Name", "Birthday", "Gender", "Created By:", "Actions"};
+        String[] columnNames = {"Patient ID", "First Name", "Middle Name", "Last Name", "Birthday", "Gender", "Barangay", "City", "Province", "Created By:", "Actions"};
         Object[][] data = {};
-
+        
         tableModel = new DefaultTableModel(data, columnNames) {
             @Override
             public boolean isCellEditable(int row, int column) {
-                return column == 7; // Only Actions column is editable
+                return column == 10; // Only Actions column is editable
             }
         };
 
@@ -251,7 +253,6 @@ public class PatientManagementFrame extends JFrame {
         JPanel sidebarPanel = new JPanel();
         sidebarPanel.setLayout(new BoxLayout(sidebarPanel, BoxLayout.Y_AXIS));
         sidebarPanel.setBackground(Color.decode("#D0EFFF"));
-        sidebarPanel.setPreferredSize(new Dimension(260, 0));
         sidebarPanel.setBorder(BorderFactory.createCompoundBorder(
                 BorderFactory.createMatteBorder(20, 2, 0, 0, Color.decode("#E1E3E5")),
                 BorderFactory.createEmptyBorder(15, 15, 15, 15)
@@ -266,12 +267,12 @@ public class PatientManagementFrame extends JFrame {
 
         createSidebarFields(sidebarPanel);
 
-        //Cancel and Save buttons
+        // Add Save and Cancel buttons
         JPanel buttonPanel = new JPanel();
         buttonPanel.setLayout(new BoxLayout(buttonPanel, BoxLayout.X_AXIS));
         buttonPanel.setOpaque(false);
         buttonPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
-        
+
         saveButton = new JButton("Save Changes");
         saveButton.setFont(btnFont);
         saveButton.setBackground(BLUE_COLOR);
@@ -279,7 +280,7 @@ public class PatientManagementFrame extends JFrame {
         saveButton.setFocusPainted(false);
         saveButton.setEnabled(false);
         saveButton.addActionListener(this::savePatientChanges);
-        
+
         cancelButton = new JButton("Cancel");
         cancelButton.setFont(btnFont);
         cancelButton.setBackground(Color.LIGHT_GRAY);
@@ -287,19 +288,32 @@ public class PatientManagementFrame extends JFrame {
         cancelButton.setFocusPainted(false);
         cancelButton.setEnabled(false);
         cancelButton.addActionListener(this::cancelEdit);
-        
+
         buttonPanel.add(saveButton);
         buttonPanel.add(Box.createRigidArea(new Dimension(10, 0)));
         buttonPanel.add(cancelButton);
-        
+
         sidebarPanel.add(Box.createVerticalStrut(20));
         sidebarPanel.add(buttonPanel);
 
-        return sidebarPanel;
+        // Wrap the sidebarPanel in a JScrollPane
+        JScrollPane scrollPane = new JScrollPane(sidebarPanel);
+        scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER); // Disable horizontal scrolling
+        scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED); // Enable vertical scrolling
+        scrollPane.setBorder(BorderFactory.createEmptyBorder()); // Remove default border
+
+        // Create a container panel to hold the scroll pane
+        JPanel containerPanel = new JPanel(new BorderLayout());
+        containerPanel.setBackground(Color.decode("#D0EFFF"));
+        containerPanel.setPreferredSize(new Dimension(260, 0));
+        containerPanel.add(scrollPane, BorderLayout.CENTER);
+
+        return containerPanel;
     }
 
     private void createSidebarFields(JPanel sidebarPanel) {
-        String[] fieldLabels = {"Patient ID:", "First Name:", "Middle Name:", "Last Name:", "Birthday:", "Gender:", "Created By:"};
+        String[] fieldLabels = {"Patient ID:", "First Name:", "Middle Name:", "Last Name:", "Birthday:", 
+                                "Gender:", "Created By:", "Barangay:", "City:", "Province:"};
         sidebarFields = new ArrayList<>();
 
         for (String label : fieldLabels) {
@@ -332,30 +346,43 @@ public class PatientManagementFrame extends JFrame {
         return fieldPanel;
     }
 
+    private void mapTableDataToSidebar(int row) {
+        if (row < 0 || row >= table.getRowCount()) {
+            return;
+        }
+        
+        // Define explicit mappings: table column index -> sidebar field index
+        Map<Integer, Integer> columnToFieldMap = new HashMap<>();
+        columnToFieldMap.put(0, 0);   // Patient ID -> Patient ID field
+        columnToFieldMap.put(1, 1);   // First Name -> First Name field
+        columnToFieldMap.put(2, 2);   // Middle Name -> Middle Name field
+        columnToFieldMap.put(3, 3);   // Last Name -> Last Name field
+        columnToFieldMap.put(4, 4);   // Birthday -> Birthday field
+        columnToFieldMap.put(5, 5);   // Gender -> Gender field
+        columnToFieldMap.put(9, 6);   // Created By -> Created By field
+        columnToFieldMap.put(6, 7);   // Barangay -> Barangay field
+        columnToFieldMap.put(7, 8);   // City -> City field
+        columnToFieldMap.put(8, 9);   // Province -> Province field
+        
+        // Update sidebar fields using the mapping
+        columnToFieldMap.forEach((tableCol, fieldIndex) -> {
+            Object value = table.getValueAt(row, tableCol);
+            sidebarFields.get(fieldIndex).setText(value != null ? value.toString() : "");
+        });
+    }
+
     private void editPatient(int row) {
         try {
-            // Ensure row is valid
             if (row < 0 || row >= table.getRowCount()) {
                 JOptionPane.showMessageDialog(this, "Invalid row selected!", "Error", JOptionPane.ERROR_MESSAGE);
                 return;
             }
-            
-            // Fill sidebar fields with selected row data (same as viewPatient)
-            for (int i = 0; i < sidebarFields.size() && i < table.getColumnCount() - 1; i++) {
-                Object val = table.getValueAt(row, i);
-                sidebarFields.get(i).setText(val != null ? val.toString() : "");
-            }
-            
+
+            mapTableDataToSidebar(row);
             editingRow = row;
             setEditMode(true);
-            
-            System.out.println("Editing patient at row: " + row); // Debug output
-            
         } catch (Exception e) {
-            JOptionPane.showMessageDialog(this, 
-                "Error editing patient: " + e.getMessage(), 
-                "Edit Error", 
-                JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Error editing patient: " + e.getMessage(), "Edit Error", JOptionPane.ERROR_MESSAGE);
             e.printStackTrace();
         }
     }
@@ -369,13 +396,15 @@ public class PatientManagementFrame extends JFrame {
         
         // Make other fields editable or read-only based on edit mode
         for (int i = 1; i < sidebarFields.size(); i++) {
-            sidebarFields.get(i).setEditable(enabled);
-            
-            // Change background color to indicate editable state
-            if (enabled) {
-                sidebarFields.get(i).setBackground(new Color(255, 255, 220)); // Light yellow for edit mode
-            } else {
-                sidebarFields.get(i).setBackground(Color.WHITE);
+            if (i != 6) {
+                sidebarFields.get(i).setEditable(enabled);
+                
+                // Change background color to indicate editable state
+                if (enabled) {
+                    sidebarFields.get(i).setBackground(new Color(255, 255, 220)); // Light yellow for edit mode
+                } else {
+                    sidebarFields.get(i).setBackground(Color.WHITE);
+                }
             }
         }
         
@@ -384,71 +413,51 @@ public class PatientManagementFrame extends JFrame {
         cancelButton.setEnabled(enabled);
     }
 
-    // Add method to handle save button
     private void savePatientChanges(ActionEvent e) {
         try {
-
-            if(editingRow < 0 || editingRow >= patientIds.size()){
+            if (editingRow < 0 || editingRow >= patientIds.size()) {
                 JOptionPane.showMessageDialog(this, "No Patient selected!", "Error", JOptionPane.ERROR_MESSAGE);
                 return;
             }
+
             int patientId = patientIds.get(editingRow);
 
             PatientDAO.Patient patient = new PatientDAO.Patient();
             patient.setInternalId(patientId);
-            patient.setFirstName(sidebarFields.get(1).getText());
-            patient.setMiddleName(sidebarFields.get(2).getText());
-            patient.setLastName(sidebarFields.get(3).getText());
-            patient.setBirthDate(sidebarFields.get(4).getText());   
-            patient.setGender(sidebarFields.get(5).getText());
-            patient.setCreatedBy(sidebarFields.get(6).getText());
-            
-            // Validate patient data
-            if (patient.getFirstName().isEmpty() || patient.getLastName().isEmpty() || 
-                patient.getBirthDate().isEmpty() || patient.getGender().isEmpty()) {
-                JOptionPane.showMessageDialog(this, 
-                    "First Name, Last Name, Birth Date, and Gender cannot be empty!", 
-                    "Validation Error", 
-                    JOptionPane.ERROR_MESSAGE);
+            patient.setFirstName(sidebarFields.get(1).getText().trim());
+            patient.setMiddleName(sidebarFields.get(2).getText().trim());
+            patient.setLastName(sidebarFields.get(3).getText().trim());
+            patient.setBirthDate(sidebarFields.get(4).getText().trim());
+            patient.setGender(sidebarFields.get(5).getText().trim());
+            // Don't update CreatedBy - just keep it for reference
+            patient.setBarangay(sidebarFields.get(7).getText().trim());
+            patient.setCity(sidebarFields.get(8).getText().trim());
+            patient.setProvince(sidebarFields.get(9).getText().trim());
+
+            // Basic validation
+            if (patient.getFirstName().isEmpty() || patient.getLastName().isEmpty()) {
+                JOptionPane.showMessageDialog(this, "First Name and Last Name cannot be empty!", 
+                                            "Validation Error", JOptionPane.ERROR_MESSAGE);
                 return;
             }
-            
-            // Update patient in database
+
+            setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
             boolean success = patientDAO.updatePatient(patient);
-            
+            setCursor(Cursor.getDefaultCursor());
+
             if (success) {
-                // Exit edit mode
                 setEditMode(false);
-                
-                if (editingRow >= 0) {
-                    tableModel.setValueAt(patient.getFirstName(), editingRow, 1);
-                    tableModel.setValueAt(patient.getMiddleName(), editingRow, 2);
-                    tableModel.setValueAt(patient.getLastName(), editingRow, 3);
-                    tableModel.setValueAt(patient.getBirthDate(), editingRow, 4);
-                    tableModel.setValueAt(patient.getGender(), editingRow, 5);
-                }
-                
-                JOptionPane.showMessageDialog(this, 
-                    "Patient record updated successfully!", 
-                    "Success", 
-                    JOptionPane.INFORMATION_MESSAGE);
-                editingRow = -1;    
+                populateTable(patientDAO.getAllPatients());
+                JOptionPane.showMessageDialog(this, "Patient record updated successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
             } else {
-                JOptionPane.showMessageDialog(this, 
-                    "Failed to update patient record!", 
-                    "Error", 
-                    JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(this, "Failed to update patient record. No changes were made.", 
+                                            "Error", JOptionPane.ERROR_MESSAGE);
             }
-            
-        } catch (NumberFormatException ex) {
-            JOptionPane.showMessageDialog(this, 
-                "Invalid patient ID!", 
-                "Error", 
-                JOptionPane.ERROR_MESSAGE);
         } catch (Exception ex) {
+            setCursor(Cursor.getDefaultCursor());
             JOptionPane.showMessageDialog(this, 
                 "Error saving patient data: " + ex.getMessage(), 
-                "Save Error", 
+                "Database Error", 
                 JOptionPane.ERROR_MESSAGE);
             ex.printStackTrace();
         }
@@ -489,15 +498,18 @@ public class PatientManagementFrame extends JFrame {
         SwingUtilities.invokeLater(() -> {
             tableModel.setRowCount(0); // Clear existing data
             patientIds.clear(); // Clear patient IDs
-            
+
             for (Patient patient : patients) {
                 tableModel.addRow(new Object[]{
-                    patient.getPatientId(), // Patient ID
+                    patient.getPatientId(),
                     patient.getFirstName(),
                     patient.getMiddleName() != null ? patient.getMiddleName() : "",
                     patient.getLastName(),
                     patient.getBirthDate(),
                     patient.getGender(),
+                    patient.getBarangay() != null ? patient.getBarangay() : "",
+                    patient.getCity() != null ? patient.getCity() : "",
+                    patient.getProvince() != null ? patient.getProvince() : "",
                     patient.getCreatedBy(),
                     null // Actions column
                 });
@@ -562,19 +574,25 @@ public class PatientManagementFrame extends JFrame {
             }
 
             setEditMode(false); // Disable edit mode if it was active
-            
-            // Fill sidebar fields with selected row data
-            for (int i = 0; i < sidebarFields.size() && i < table.getColumnCount() - 1; i++) {
-                Object val = table.getValueAt(row, i);
-                sidebarFields.get(i).setText(val != null ? val.toString() : "");
-            }
-            
+
+            // Map table data to correct sidebar fields
+            sidebarFields.get(0).setText(String.valueOf(table.getValueAt(row, 0))); // Patient ID
+            sidebarFields.get(1).setText(String.valueOf(table.getValueAt(row, 1))); // First Name
+            sidebarFields.get(2).setText(String.valueOf(table.getValueAt(row, 2))); // Middle Name
+            sidebarFields.get(3).setText(String.valueOf(table.getValueAt(row, 3))); // Last Name
+            sidebarFields.get(4).setText(String.valueOf(table.getValueAt(row, 4))); // Birthday
+            sidebarFields.get(5).setText(String.valueOf(table.getValueAt(row, 5))); // Gender
+            sidebarFields.get(6).setText(String.valueOf(table.getValueAt(row, 9))); // Created By (column 9)
+            sidebarFields.get(7).setText(String.valueOf(table.getValueAt(row, 6))); // Barangay (column 6)
+            sidebarFields.get(8).setText(String.valueOf(table.getValueAt(row, 7))); // City (column 7)
+            sidebarFields.get(9).setText(String.valueOf(table.getValueAt(row, 8))); // Province (column 8)
+
             System.out.println("Viewing patient at row: " + row); // Debug output
-            
+
         } catch (Exception e) {
-            JOptionPane.showMessageDialog(this, 
-                "Error viewing patient: " + e.getMessage(), 
-                "View Error", 
+            JOptionPane.showMessageDialog(this,
+                "Error viewing patient: " + e.getMessage(),
+                "View Error",
                 JOptionPane.ERROR_MESSAGE);
             e.printStackTrace();
         }
@@ -604,6 +622,7 @@ public class PatientManagementFrame extends JFrame {
                 "Are you sure you want to delete this patient record?\n\n" +
                 "Name: " + firstName + " " + lastName + "\n" +
                 "Gender: " + gender + "\n\n" +
+                "WARNING: All appointments for this patient will also be deleted.\n" +
                 "This action cannot be undone.",
                 "Confirm Delete",
                 JOptionPane.YES_NO_OPTION,
@@ -723,15 +742,30 @@ public class PatientManagementFrame extends JFrame {
             button.setPreferredSize(new Dimension(60, 20));
             button.setMargin(new Insets(0, 4, 0, 4));
             
+            if("Delete".equals(text)) {
+                button.setBackground(Color.decode("#D9534F")); // Red for delete
+            } else {
+                button.setBackground(Color.decode("#1167B1")); // Default blue for view/edit
+
+            }
+
             // Add hover effects for better UX
             button.addMouseListener(new java.awt.event.MouseAdapter() {
                 @Override
                 public void mouseEntered(java.awt.event.MouseEvent evt) {
-                    button.setBackground(Color.decode("#0d5a9f"));
+                    if("Delete".equals(text)) {
+                        button.setBackground(Color.decode("#C9302C")); // Darker red for delete
+                    } else {
+                        button.setBackground(Color.decode("#0d5a9f"));
+                    }
                 }
                 @Override
                 public void mouseExited(java.awt.event.MouseEvent evt) {
-                    button.setBackground(Color.decode("#1167B1"));
+                    if ("Delete".equals(text)) {
+                        button.setBackground(Color.decode("#DC3545")); // Back to normal red
+                    } else {
+                        button.setBackground(Color.decode("#1167B1")); // Back to normal blue
+                    }
                 }
             });
             
@@ -782,7 +816,10 @@ public class PatientManagementFrame extends JFrame {
             button.setBorderPainted(false);
             button.setPreferredSize(new Dimension(60, 20));
             button.setMargin(new Insets(0, 4, 0, 4));
-            return button;
+            if ("Delete".equals(text)) {
+                button.setBackground(Color.decode("#DC3545")); // Red color for delete
+            } 
+            return button;  
         }
 
         @Override
@@ -793,11 +830,11 @@ public class PatientManagementFrame extends JFrame {
             if (isSelected) {
                 viewBtn.setBackground(Color.decode("#0d5a9f"));
                 editBtn.setBackground(Color.decode("#0d5a9f"));
-                deleteBtn.setBackground(Color.decode("#0d5a9f"));
+                deleteBtn.setBackground(Color.decode("#C82333"));
             } else {
                 viewBtn.setBackground(Color.decode("#1167B1"));
                 editBtn.setBackground(Color.decode("#1167B1"));
-                deleteBtn.setBackground(Color.decode("#1167B1"));
+                deleteBtn.setBackground(Color.decode("#DC3545"));
             }
             
             return this;

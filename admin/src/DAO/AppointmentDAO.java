@@ -26,6 +26,9 @@ public class AppointmentDAO {
         private String createdAt;
         private String updatedAt;
 
+        private String patientFullName;
+        private String patientEmail;
+
         // Constructor
         public Appointment() {}
 
@@ -50,6 +53,22 @@ public class AppointmentDAO {
             if (internalId > 0) {
                 this.appointmentId = formatId("apo-", 1000000, internalId);
             }
+        }
+
+        public String getPatientFullName() {
+            return patientFullName;
+        }
+
+        public void setPatientFullName(String patientFullName) {
+            this.patientFullName = patientFullName;
+        }
+
+        public String getPatientEmail() {
+            return patientEmail;
+        }
+
+        public void setPatientEmail(String patientEmail){
+            this.patientEmail = patientEmail;
         }
 
         public String getAppointmentId() { return appointmentId; }
@@ -99,7 +118,7 @@ public class AppointmentDAO {
         appointment.setAppointmentDate(rs.getString("AppointmentDate"));
         appointment.setAppointmentTime(rs.getString("AppointmentTime"));
         appointment.setAppointmentDateTime(rs.getString("AppointmentDateTime"));
-        appointment.setStatus(rs.getString("status"));
+        appointment.setStatus(rs.getString("Status")); // Ensure status is set
         appointment.setCreatedAt(rs.getString("created_at"));
         appointment.setUpdatedAt(rs.getString("updated_at"));
         return appointment;
@@ -108,16 +127,32 @@ public class AppointmentDAO {
     // Get all appointments
     public List<Appointment> getAllAppointments() throws SQLException {
         List<Appointment> appointments = new ArrayList<>();
-        String sql = "SELECT AppointmentID, InternalID, PatientID, ScheduledBy, ServiceID, " +
-                    "AppointmentDate, AppointmentTime, AppointmentDateTime, created_at, updated_at " + ", Status " +
-                    "FROM AppointmentTbl ORDER BY AppointmentDateTime DESC";
+        String sql = "SELECT a.AppointmentID, a.InternalID, a.PatientID, a.ScheduledBy, a.ServiceID, " +
+                 "a.AppointmentDate, a.AppointmentTime, a.AppointmentDateTime, a.created_at, a.updated_at, a.Status, " +
+                 "CONCAT(p.FirstName, ' ', p.MiddleName, ' ', p.LastName) AS FullName, " +
+                 "s.ServiceName, acc.Email " +
+                 "FROM AppointmentTbl a " +
+                 "LEFT JOIN PatientTbl p ON a.PatientID = p.PatientID " +
+                 "LEFT JOIN ServicesTbl s ON a.ServiceID = s.ServiceID " +
+                 "LEFT JOIN AccountTbl acc ON a.ScheduledBy = acc.AccountID " +
+                 "ORDER BY a.AppointmentDateTime DESC";
 
         try (Connection conn = DBConnector.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql);
              ResultSet rs = stmt.executeQuery()) {
 
             while (rs.next()) {
-                appointments.add(createAppointmentFromResultSet(rs));
+                Appointment appointment = createAppointmentFromResultSet(rs);
+                appointment.setPatientFullName(rs.getString("FullName")); // Set full name
+                appointment.setPatientEmail(rs.getString("Email")); // Set email
+                
+                if(rs.getString("ServiceName") != null) {
+                    appointment.setServiceId(rs.getString("ServiceName")); // Set service name if available
+                } else {
+                    appointment.setServiceId("Unknown Service");
+                }
+
+                appointments.add(appointment);
             }
         }
         return appointments;
@@ -125,38 +160,68 @@ public class AppointmentDAO {
 
     // Get appointment by Internal ID
     public Appointment getAppointmentById(int internalId) throws SQLException {
-        String sql = "SELECT AppointmentID, InternalID, PatientID, ScheduledBy, ServiceID, " +
-                    "AppointmentDate, AppointmentTime, AppointmentDateTime, created_at, updated_at " + ", Status " +
-                    "FROM AppointmentTbl WHERE InternalID = ?";
+        String sql = "SELECT a.AppointmentID, a.InternalID, a.PatientID, a.ScheduledBy, a.ServiceID, " +
+                "a.AppointmentDate, a.AppointmentTime, a.AppointmentDateTime, a.created_at, a.updated_at, a.Status, " +
+                "CONCAT(p.FirstName, ' ', COALESCE(p.MiddleName, ''), ' ', p.LastName) AS FullName, " +
+                "s.ServiceName, acc.Email " +
+                "FROM AppointmentTbl a " +
+                "LEFT JOIN PatientTbl p ON a.PatientID = p.PatientID " +
+                "LEFT JOIN ServicesTbl s ON a.ServiceID = s.ServiceID " +
+                "LEFT JOIN AccountTbl acc ON a.ScheduledBy = acc.AccountID " +
+                "WHERE a.InternalID = ?";
         
         try (Connection conn = DBConnector.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            PreparedStatement stmt = conn.prepareStatement(sql)) {
             
             stmt.setInt(1, internalId);
             
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
-                    return createAppointmentFromResultSet(rs);
+                    Appointment appointment = createAppointmentFromResultSet(rs);
+                    appointment.setPatientFullName(rs.getString("FullName"));
+                    appointment.setPatientEmail(rs.getString("Email"));
+                    
+                    // Set the service name instead of the service ID
+                    if (rs.getString("ServiceName") != null) {
+                        appointment.setServiceId(rs.getString("ServiceName"));
+                    } else {
+                        appointment.setServiceId("Unknown Service");
+                    }
+                    
+                    return appointment;
                 }
             }
         }
         return null;
     }
 
-    // Get appointment by formatted ID (e.g., "apo-1000000")
     public Appointment getAppointmentByFormattedId(String formattedId) throws SQLException {
-        String sql = "SELECT AppointmentID, InternalID, PatientID, ScheduledBy, ServiceID, " +
-                    "AppointmentDate, AppointmentTime, AppointmentDateTime, created_at, updated_at " + ", Status " +
-                    "FROM AppointmentTbl WHERE AppointmentID = ?";
-        
+        String sql = "SELECT a.AppointmentID, a.InternalID, a.PatientID, a.ScheduledBy, a.ServiceID, " +
+                "a.AppointmentDate, a.AppointmentTime, a.AppointmentDateTime, a.created_at, a.updated_at, a.Status, " +
+                "CONCAT(p.FirstName, ' ', COALESCE(p.MiddleName, ''), ' ', p.LastName) AS FullName, " +
+                "s.ServiceName, acc.Email " +
+                "FROM AppointmentTbl a " +
+                "LEFT JOIN PatientTbl p ON a.PatientID = p.PatientID " +
+                "LEFT JOIN ServicesTbl s ON a.ServiceID = s.ServiceID " +
+                "LEFT JOIN AccountTbl acc ON a.ScheduledBy = acc.AccountID " +
+                "WHERE a.AppointmentID = ?";
+
         try (Connection conn = DBConnector.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-            
+            PreparedStatement stmt = conn.prepareStatement(sql)) {
+
             stmt.setString(1, formattedId);
-            
+
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
-                    return createAppointmentFromResultSet(rs);
+                    Appointment appointment = createAppointmentFromResultSet(rs);
+                    appointment.setPatientFullName(rs.getString("FullName"));
+                    appointment.setPatientEmail(rs.getString("Email"));
+                    
+                    // Keep backward compatibility
+                    if (rs.getString("ServiceName") != null) {
+                        appointment.setServiceId(rs.getString("ServiceName"));
+                    }
+                    return appointment;
                 }
             }
         }
@@ -166,11 +231,11 @@ public class AppointmentDAO {
     // Add new appointment
     public boolean addAppointment(Appointment appointment) throws SQLException {
         String sql = "INSERT INTO AppointmentTbl (AppointmentID, InternalID, PatientID, ScheduledBy, " +
-                    "ServiceID, AppointmentDate, AppointmentTime, AppointmentDateTime, status) " +
+                    "ServiceID, AppointmentDate, AppointmentTime, AppointmentDateTime, Status) " +
                     "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
         try (Connection conn = DBConnector.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            PreparedStatement stmt = conn.prepareStatement(sql)) {
             
             // Get next internal ID
             int nextInternalId = getNextInternalId();
@@ -199,26 +264,91 @@ public class AppointmentDAO {
         }
     }
 
-    // Update appointment
+    // Add this to your AppointmentDAO class
+
     public boolean updateAppointment(Appointment appointment) throws SQLException {
-        String sql = "UPDATE AppointmentTbl SET PatientID = ?, ScheduledBy = ?, ServiceID = ?, " +
-                    "AppointmentDate = ?, AppointmentTime = ?, AppointmentDateTime = ? " + ", Status = ? " +
-                    "WHERE InternalID = ?";
+        System.out.println("[STATUS DEBUG] Starting updateAppointment for AppointmentID: " + appointment.getAppointmentId());
+        System.out.println("[STATUS DEBUG] Status value being set: " + appointment.getStatus());
+        
+        String sql = "UPDATE AppointmentTbl SET Status = ? WHERE AppointmentID = ?";
+        System.out.println("[STATUS DEBUG] SQL: " + sql);
 
-        try (Connection conn = DBConnector.getConnection();
-            PreparedStatement stmt = conn.prepareStatement(sql)) {
+        Connection conn = null;
+        try {
+            conn = DBConnector.getConnection();
             
-            stmt.setString(1, appointment.getPatientId());
-            stmt.setString(2, appointment.getScheduledBy());
-            stmt.setString(3, appointment.getServiceId());
-            stmt.setString(4, appointment.getAppointmentDate());
-            stmt.setString(5, appointment.getAppointmentTime());
-            stmt.setString(6, appointment.getAppointmentDateTime());
-            stmt.setString(7, appointment.getStatus());
-            stmt.setInt(8, appointment.getInternalId());
+            // Explicitly set auto-commit to false to manage transaction
+            conn.setAutoCommit(false);
+            System.out.println("[STATUS DEBUG] Auto-commit set to false for transaction control");
+            
+            try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+                // Set the parameters
+                stmt.setString(1, appointment.getStatus());
+                stmt.setString(2, appointment.getAppointmentId());
+                
+                System.out.println("[STATUS DEBUG] Parameter 1 (Status): " + appointment.getStatus());
+                System.out.println("[STATUS DEBUG] Parameter 2 (AppointmentID): " + appointment.getAppointmentId());
 
-            return stmt.executeUpdate() > 0;
+                // Execute the update
+                int rowsUpdated = stmt.executeUpdate();
+                System.out.println("[STATUS DEBUG] Rows updated: " + rowsUpdated);
+                
+                // If successful, commit the transaction
+                if (rowsUpdated > 0) {
+                    conn.commit();
+                    System.out.println("[STATUS DEBUG] Transaction committed successfully");
+                    
+                    // Verify the update with a separate query
+                    String newStatus = getCurrentStatus(appointment.getAppointmentId(), conn);
+                    System.out.println("[STATUS DEBUG] Status after commit: " + newStatus);
+                    
+                    return true;
+                } else {
+                    // If no rows updated, rollback
+                    conn.rollback();
+                    System.out.println("[STATUS DEBUG] No rows updated, transaction rolled back");
+                    return false;
+                }
+            }
+        } catch (SQLException e) {
+            // On error, attempt to rollback
+            if (conn != null) {
+                try {
+                    conn.rollback();
+                    System.out.println("[STATUS DEBUG] Error occurred, transaction rolled back");
+                } catch (SQLException ex) {
+                    System.out.println("[STATUS DEBUG] Error during rollback: " + ex.getMessage());
+                }
+            }
+            System.out.println("[STATUS DEBUG] SQL Exception: " + e.getMessage());
+            e.printStackTrace();
+            throw e;
+        } finally {
+            // Always restore auto-commit and close connection properly
+            if (conn != null) {
+                try {
+                    conn.setAutoCommit(true);
+                    conn.close();
+                    System.out.println("[STATUS DEBUG] Connection closed, auto-commit restored");
+                } catch (SQLException ex) {
+                    System.out.println("[STATUS DEBUG] Error closing connection: " + ex.getMessage());
+                }
+            }
         }
+    }
+
+    // Helper method to get current status
+    private String getCurrentStatus(String appointmentId, Connection conn) throws SQLException {
+        String sql = "SELECT Status FROM AppointmentTbl WHERE AppointmentID = ?";
+        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, appointmentId);
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getString("Status");
+                }
+            }
+        }
+        return null;
     }
 
     // Delete appointment
@@ -361,41 +491,76 @@ public class AppointmentDAO {
         return 1; // Default to 1 if no records exist
     }
 
-    // Search appointments (by Patient ID, Service ID, or formatted ID)
+    /**
+     * Search appointments by multiple criteria: ID, patient name, date, service, status
+     */
     public List<Appointment> searchAppointments(String searchText) throws SQLException {
         List<Appointment> appointments = new ArrayList<>();
+        String searchPattern = "%" + searchText.trim() + "%";
         
-        // First check if search text is a formatted ID
-        if (searchText.startsWith("APO-")) {
-            Appointment appointment = getAppointmentByFormattedId(searchText);
-            if (appointment != null) {
-                appointments.add(appointment);
-                return appointments;
-            }
-        }
-        
-        String sql = "SELECT AppointmentID, InternalID, PatientID, ScheduledBy, ServiceID, " +
-                    "AppointmentDate, AppointmentTime, AppointmentDateTime, created_at, updated_at " + ", Status " +
-                    "FROM AppointmentTbl WHERE " +
-                    "PatientID LIKE ? OR " +
-                    "ServiceID LIKE ? OR " +
-                    "ScheduledBy LIKE ? " +
-                    "ORDER BY AppointmentDateTime DESC";
-
-        try (Connection conn = DBConnector.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-            
-            String searchPattern = "%" + searchText + "%";
-            stmt.setString(1, searchPattern);
-            stmt.setString(2, searchPattern);
-            stmt.setString(3, searchPattern);
-            
-            try (ResultSet rs = stmt.executeQuery()) {
-                while (rs.next()) {
-                    appointments.add(createAppointmentFromResultSet(rs));
+        // Fix case-insensitivity for appointment ID search
+        if (searchText.toUpperCase().startsWith("APO-")) {
+            // Make case-insensitive by converting both to uppercase
+            String formattedId = searchText.toUpperCase();
+            // Try to get matching appointment regardless of case
+            String sql = "SELECT * FROM AppointmentTbl WHERE UPPER(AppointmentID) = ?";
+            try (Connection conn = DBConnector.getConnection();
+                PreparedStatement stmt = conn.prepareStatement(sql)) {
+                
+                stmt.setString(1, formattedId);
+                try (ResultSet rs = stmt.executeQuery()) {
+                    if (rs.next()) {
+                        appointments.add(createAppointmentFromResultSet(rs));
+                        return appointments;
+                    }
                 }
             }
         }
+        
+        // If not found by exact ID, do a comprehensive search
+        String sql = "SELECT a.*, " +
+                    "CONCAT(p.FirstName, ' ', COALESCE(p.MiddleName, ''), ' ', p.LastName) AS FullName, " +
+                    "s.ServiceName, acc.Email " +
+                    "FROM AppointmentTbl a " +
+                    "LEFT JOIN PatientTbl p ON a.PatientID = p.PatientID " +
+                    "LEFT JOIN ServicesTbl s ON a.ServiceID = s.ServiceID " +
+                    "LEFT JOIN AccountTbl acc ON a.ScheduledBy = acc.AccountID " +
+                    "WHERE " +
+                    "a.AppointmentID LIKE ? OR " +         // Search by appointment ID
+                    "p.FirstName LIKE ? OR " +             // Search by patient first name
+                    "p.LastName LIKE ? OR " +              // Search by patient last name
+                    "a.AppointmentDate LIKE ? OR " +       // Search by date
+                    "s.ServiceName LIKE ? OR " +           // Search by service name
+                    "a.Status LIKE ? " +                   // Search by status
+                    "ORDER BY a.AppointmentDateTime DESC";
+                    
+        try (Connection conn = DBConnector.getConnection();
+            PreparedStatement stmt = conn.prepareStatement(sql)) {
+            
+            // Set all the search parameters
+            for (int i = 1; i <= 6; i++) {
+                stmt.setString(i, searchPattern);
+            }
+            
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    Appointment appointment = createAppointmentFromResultSet(rs);
+                    
+                    // Add additional information
+                    appointment.setPatientFullName(rs.getString("FullName"));
+                    appointment.setPatientEmail(rs.getString("Email"));
+                    
+                    // Set service name if available
+                    if (rs.getString("ServiceName") != null) {
+                        appointment.setServiceId(rs.getString("ServiceName"));
+                    }
+                    
+                    appointments.add(appointment);
+                }
+            }
+        }
+        
+        System.out.println("Search for '" + searchText + "' found " + appointments.size() + " results");
         return appointments;
     }
 
@@ -423,11 +588,11 @@ public class AppointmentDAO {
         if (appointment == null) return false;
         
         return appointment.getPatientId() != null && !appointment.getPatientId().trim().isEmpty() &&
-               appointment.getScheduledBy() != null && !appointment.getScheduledBy().trim().isEmpty() &&
-               appointment.getServiceId() != null && !appointment.getServiceId().trim().isEmpty() &&
-               appointment.getAppointmentDate() != null && !appointment.getAppointmentDate().trim().isEmpty() &&
-               appointment.getAppointmentTime() != null && !appointment.getAppointmentTime().trim().isEmpty() &&
-               appointment.getAppointmentDateTime() != null && !appointment.getAppointmentDateTime().trim().isEmpty();
+            appointment.getScheduledBy() != null && !appointment.getScheduledBy().trim().isEmpty() &&
+            appointment.getServiceId() != null && !appointment.getServiceId().trim().isEmpty() &&
+            appointment.getAppointmentDate() != null && !appointment.getAppointmentDate().trim().isEmpty() &&
+            appointment.getAppointmentTime() != null && !appointment.getAppointmentTime().trim().isEmpty() &&
+            appointment.getAppointmentDateTime() != null && !appointment.getAppointmentDateTime().trim().isEmpty();
     }
 
     // Check if formatted ID is valid
