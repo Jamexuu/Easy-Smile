@@ -48,7 +48,7 @@ if ($result && $result->num_rows > 0) {
     $appointmentTime = htmlspecialchars($row['AppointmentTime']);
     $status = htmlspecialchars($row['Status']);
     $serviceName = htmlspecialchars($row['ServiceName']);
-    $firstName = htmlspecialchars($row['FirstName']);
+    $firstName = htmlspecialchars($row['FirstName']);   
     $lastName = htmlspecialchars($row['LastName']);
     $middleName = htmlspecialchars($row['MiddleName']);
     $birthDate = htmlspecialchars($row['BirthDate']);
@@ -69,7 +69,14 @@ $conn->close();
 <head>
     <meta charset="UTF-8">
     <title>View Appointment</title>
-    <link rel="stylesheet" href="css/view_appointment.css"> <!-- Link the CSS file -->
+    <!-- Add Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Fix paths to CSS files (go up one directory) -->
+    <link rel="stylesheet" href="../css/header.css">
+    <link rel="stylesheet" href="../css/footer.css">
+    <link rel="stylesheet" href="css/view_appointment.css">
+    
     <style>
         body {
             background-color: #f9f9f9;

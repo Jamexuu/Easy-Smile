@@ -1,182 +1,146 @@
-CREATE TABLE AdminTbl(
-	AdminID VARCHAR(20) PRIMARY KEY NOT NULL,
-    InternalID INT UNIQUE NOT NULL,
-    Password VARCHAR(100) NOT NULL
+-- For Account Address Table
+CREATE TABLE accountaddresstbl (
+  AccountAddressID varchar(20) NOT NULL,
+  InternalID int NOT NULL,
+  Barangay varchar(50) DEFAULT NULL,
+  City varchar(50) NOT NULL,
+  Province varchar(50) NOT NULL,
+  AccountID varchar(20) NOT NULL, 
+  PRIMARY KEY (AccountAddressID),
+  UNIQUE KEY InternalID (InternalID),
+  KEY AccountID (AccountID),
+  CONSTRAINT accountaddresstbl_ibfk_1 FOREIGN KEY (AccountID) REFERENCES accounttbl (AccountID)
 );
 
-SELECT * FROM AdminTbl;
-
-CREATE TABLE DentistTbl(
-	DentistID VARCHAR(20) PRIMARY KEY NOT NULL,
-    InternalID INT UNIQUE NOT NULL,
-    Title VARCHAR (50) NOT NULL,
-    FirstName VARCHAR(100) NOT NULL,
-    MiddleName VARCHAR(100),
-    LastName VARCHAR(100) NOT NULL,
-    Age INT(3) NOT NULL,
-    Bio VARCHAR(1000) NOT NULL,
-    DentistImgPath VARCHAR(500)
+-- For Account Table
+CREATE TABLE accounttbl (
+  AccountID varchar(20) NOT NULL,
+  InternalID int NOT NULL,
+  FirstName varchar(100) NOT NULL,
+  MiddleName varchar(100) NOT NULL,
+  LastName varchar(100) NOT NULL,
+  BirthDate date NOT NULL,
+  Gender enum('Male','Female','Other') DEFAULT NULL,
+  Email varchar(100) NOT NULL,
+  Password varchar(100) NOT NULL,
+  PhoneNumber varchar(20) NOT NULL,
+  created_at timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (AccountID),
+  UNIQUE KEY InternalID (InternalID)
 );
 
-SELECT * FROM DentistTbl;
-
-CREATE TABLE ClinicInfoTbl(
-	ClinicID VARCHAR(20) PRIMARY KEY NOT NULL,
-    InternalID INT UNIQUE NOT NULL,
-    PhoneNumber VARCHAR(20) NOT NULL,
-    Email VARCHAR(100) NOT NULL,
-    Location VARCHAR(100) NOT NULL,
-    FacebookLink VARCHAR(100) NOT NULL,
-    InstagramLink VARCHAR(100) NOT NULL
+-- For Admin Table
+CREATE TABLE admintbl (
+  AdminID varchar(20) NOT NULL,
+  InternalID int NOT NULL,
+  Password varchar(100) NOT NULL,
+  created_at timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (AdminID),
+  UNIQUE KEY InternalID (InternalID)
 );
 
-SELECT * FROM ClinicInfoTbl;
+-- Table Appointment Table
+CREATE TABLE appointmenttbl (
+  AppointmentID varchar(20) NOT NULL,
+  InternalID int NOT NULL AUTO_INCREMENT,
+  PatientID varchar(20) NOT NULL,
+  Scheduledby varchar(20) NOT NULL,
+  ServiceID varchar(20) NOT NULL,
+  AppointmentDate date NOT NULL,
+  AppointmentTime time NOT NULL,
+  AppointmentDateTime datetime NOT NULL,
+  created_at timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  Status enum('Upcoming', 'Completed', 'Canceled') DEFAULT NULL,
+  PRIMARY KEY (AppointmentID),
+  UNIQUE KEY InternalID (InternalID),
+  KEY PatientID (PatientID),
+  KEY Scheduledby (Scheduledby),
+  KEY ServiceID (ServiceID),
+  CONSTRAINT appointmenttbl_ibfk_1 FOREIGN KEY (PatientID) REFERENCES patienttbl (PatientID) ON DELETE RESTRICT ON UPDATE CASCADE,
+  CONSTRAINT appointmenttbl_ibfk_2 FOREIGN KEY (Scheduledby) REFERENCES accounttbl (AccountID) ON DELETE RESTRICT ON UPDATE CASCADE,
+  CONSTRAINT appointmenttbl_ibfk_3 FOREIGN KEY (ServiceID) REFERENCES servicestbl (ServiceID) ON DELETE RESTRICT ON UPDATE CASCADE
+) 
 
-CREATE TABLE ServicesTbl(
-	ServiceID VARCHAR(20) PRIMARY KEY NOT NULL,
-    InternalID INT UNIQUE NOT NULL,
-    ServiceName VARCHAR(100) NOT NULL,
-    ServicDesc VARCHAR(100) NOT NULL,
-    StartingPrice DECIMAL NOT NULL,
-    Status ENUM('Available', 'Unavailable') NOT NULL
+-- For Clinic Info
+CREATE TABLE clinicinfotbl (
+  ClinicID varchar(20) NOT NULL,
+  InternalID int NOT NULL,
+  PhoneNumber varchar(20) NOT NULL,
+  Email varchar(100) NOT NULL,
+  Location varchar(100) NOT NULL,
+  FacebookLink varchar(100) NOT NULL,
+  InstagramLink varchar(100) NOT NULL,
+  created_at timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (ClinicID),
+  UNIQUE KEY InternalID (InternalID)
 );
 
-SELECT *  FROM ServicesTbl;
-
-CREATE TABLE PatientTbl(
-	PatientID VARCHAR(20) PRIMARY KEY NOT NULL,
-    InternalID INT UNIQUE NOT NULL,
-    FirstName VARCHAR(100) NOT NULL,
-    MiddleName VARCHAR(100) NOT NULL,
-    LastName VARCHAR(100) NOT NULL,
-    BirthDate DATE NOT NULL,
-    Gender ENUM('Male', 'Female', 'Other') NOT NULL,
-    CreatedBy VARCHAR(100) NOT NULL
+-- For Dentist Table
+CREATE TABLE dentisttbl (
+  DentistID varchar(20) NOT NULL,
+  InternalID int NOT NULL,
+  Title varchar(50) NOT NULL,
+  FirstName varchar(100) NOT NULL,
+  MiddleName varchar(100) DEFAULT NULL,
+  LastName varchar(100) NOT NULL,
+  Age int NOT NULL,
+  Bio varchar(1000) NOT NULL,
+  DentistImgPath varchar(500) DEFAULT NULL,
+  created_at timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  Prefix varchar(50) DEFAULT NULL,
+  PRIMARY KEY (DentistID),
+  UNIQUE KEY InternalID (InternalID)
 );
 
-SELECT * FROM PatientTbl;
-
-CREATE TABLE AccountTbl(
-	AccountID VARCHAR(20) PRIMARY KEY NOT NULL,
-    InternalID INT UNIQUE NOT NULL,
-    FirstName VARCHAR(100) NOT NULL,
-    MiddleName VARCHAR(100) NOT NULL,
-    LastName VARCHAR(100) NOT NULL,
-    BirthDate DATE NOT NULL,
-    Gender ENUM('Male', 'Female', 'Other'),
-    Email VARCHAR(100) NOT NULL,
-    Password VARCHAR(100) NOT NULL,
-    PhoneNumber VARCHAR(20) NOT NULL
+-- For Patient Address
+CREATE TABLE patientaddresstbl (
+  PatientAddressID varchar(20) NOT NULL,
+  InternalID int NOT NULL AUTO_INCREMENT,
+  Barangay varchar(50) DEFAULT NULL,
+  City varchar(50) NOT NULL,
+  Province varchar(50) NOT NULL,
+  PatientID varchar(20) NOT NULL,
+  PRIMARY KEY (PatientAddressID),
+  UNIQUE KEY InternalID (InternalID),
+  KEY PatientID (PatientID),
+  CONSTRAINT patientaddresstbl_ibfk_1 FOREIGN KEY (PatientID) REFERENCES patienttbl (PatientID)
 );
 
-SELECT * FROM AccountTbl;
-
-CREATE TABLE AppointmentTbl(
-	AppointmentID VARCHAR(20) PRIMARY KEY NOT NULL,
-    InternalID INT UNIQUE NOT NULL,
-    PatientID VARCHAR(20) NOT NULL,
-    FOREIGN KEY (PatientID) REFERENCES PatientTbl(PatientID)
-    ON DELETE RESTRICT 
-    ON UPDATE CASCADE,
-    Scheduledby VARCHAR(20) NOT NULL,
-    FOREIGN KEY (ScheduledBy) REFERENCES AccountTbl(AccountID)
-    ON DELETE RESTRICT
-    ON UPDATE CASCADE,
-    ServiceID VARCHAR(20) NOT NULL,
-    FOREIGN KEY (ServiceID) REFERENCES ServicesTbl(ServiceID)
-    ON DELETE RESTRICT
-    ON UPDATE CASCADE,
-    AppointmentDate DATE NOT NULL,
-    AppointmentTime TIME NOT NULL,
-    AppointmentDateTime DATETIME NOT NULL
+-- For Patient Table
+CREATE TABLE patienttbl (
+  PatientID varchar(20) NOT NULL,
+  InternalID int NOT NULL AUTO_INCREMENT,
+  FirstName varchar(100) NOT NULL,
+  MiddleName varchar(100) DEFAULT NULL,
+  LastName varchar(100) NOT NULL,
+  BirthDate date NOT NULL,
+  Gender enum('Male', 'Female', 'Other') DEFAULT NULL,
+  CreatedBy varchar(100) NOT NULL,
+  created_at timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PhoneNumber varchar(20) NOT NULL,
+  PRIMARY KEY (PatientID),
+  UNIQUE KEY InternalID (InternalID),
+  KEY fk_patient_createdby (CreatedBy),
+  CONSTRAINT fk_patient_createdby FOREIGN KEY (CreatedBy) REFERENCES accounttbl (AccountID) ON DELETE CASCADE ON UPDATE CASCADE
 );
 
-SELECT * FROM AppointmentTbl;
+-- For Services Table
+CREATE TABLE servicestbl (
+  ServiceID varchar(20) NOT NULL,
+  InternalID int NOT NULL,
+  ServiceName varchar(100) NOT NULL,
+  ServiceDesc varchar(100) NOT NULL,
+  StartingPrice decimal(10,0) NOT NULL,
+  Status enum('Available', 'Unavailable') NOT NULL,
+  created_at timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (ServiceID),
+  UNIQUE KEY InternalID (InternalID)
+);
 
-ALTER TABLE appointmenttbl
-ADD Status ENUM('Upcomming', 'Completed', 'Cancelled');
-
--- Admin Table
-ALTER TABLE AdminTbl
-ADD COLUMN created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-ADD COLUMN updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP;
-
--- Dentist Table
-ALTER TABLE DentistTbl
-ADD COLUMN created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-ADD COLUMN updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP;
-
--- Clinic Info Table
-ALTER TABLE ClinicInfoTbl
-ADD COLUMN created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-ADD COLUMN updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP;
-
--- Services Table
-ALTER TABLE ServicesTbl
-ADD COLUMN created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-ADD COLUMN updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP;
-
--- Patient Table
-ALTER TABLE PatientTbl
-ADD COLUMN created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-ADD COLUMN updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP;
-
--- Account Table
-ALTER TABLE AccountTbl
-ADD COLUMN created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-ADD COLUMN updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP;
-
--- Appointment Table
-ALTER TABLE AppointmentTbl
-ADD COLUMN created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-ADD COLUMN updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP;
-
--- Admin Table
-SELECT AdminID, InternalID, Password, created_at, updated_at FROM AdminTbl;
-
--- Dentist Table
-SELECT DentistID, InternalID, Title, FirstName, MiddleName, LastName, Age, Bio, DentistImgPath, created_at, updated_at FROM DentistTbl;
-
--- Clinic Info Table
-SELECT ClinicID, InternalID, PhoneNumber, Email, Location, FacebookLink, InstagramLink, created_at, updated_at FROM ClinicInfoTbl;
-
--- Services Table
-SELECT ServiceID, InternalID, ServiceName, ServicDesc, StartingPrice, Status, created_at, updated_at FROM ServicesTbl;
-
--- Patient Table
-SELECT PatientID, InternalID, FirstName, MiddleName, LastName, BirthDate, Gender, CreatedBy, created_at, updated_at FROM PatientTbl;
-
--- Account Table
-SELECT AccountID, InternalID, FirstName, MiddleName, LastName, BirthDate, Gender, Email, Password, PhoneNumber, created_at, updated_at FROM AccountTbl;
-
--- Appointment Table
-SELECT AppointmentID, InternalID, PatientID, ScheduledBy, ServiceID, AppointmentDate, AppointmentTime, AppointmentDateTime, created_at, updated_at FROM AppointmentTbl;
-
-ALTER TABLE table_name
-MODIFY COLUMN MiddleName VARCHAR(100) NULL;
-
-ALTER TABLE PatientTbl
-MODIFY COLUMN Gender ENUM('Male', 'Female', 'Other') NULL;
-
-ALTER TABLE patienttbl
-ADD CONSTRAINT fk_patient_createdby
-FOREIGN KEY (CreatedBy) REFERENCES AccountTbl(AccountID)
-ON DELETE CASCADE  -- Optional behavior
-ON UPDATE CASCADE; -- Optional behavior
-
-UPDATE patienttbl
-SET CreatedBy = 'ACC-1000001'
-WHERE CreatedBy = 'user';
-
-ALTER TABLE dentisttbl
-ADD Prefix VARCHAR(50);
-
-ALTER TABLE patienttbl
-ADD PhoneNumber VARCHAR(20) NOT NULL;
-
-INSERT INTO ServicesTbl (ServiceID, InternalID, ServiceName, ServicDesc, StartingPrice, Status)
-VALUES 
-('SER-1000001', 1, 'Braces Installation', 'Orthodontic braces fitting.', 30000.00, 'Available');
-
-ALTER TABLE servicestbl
-RENAME COLUMN ServicDesc TO ServiceDesc
